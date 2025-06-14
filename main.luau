@@ -67,7 +67,28 @@ local function doAttack()
     VirtualInputManager:SendMouseButtonEvent(0, 0, 0, false, game, 1) -- mouse button up
 end
 
--- Auto Farm (NPCs + Quest) with auto attack
+local function finishQuestIfComplete(questName)
+    -- Checks if quest objective is complete and finishes quest if possible
+    -- This might depend on your game’s UI and quest system; adjust accordingly
+
+    local questGui = player.PlayerGui:FindFirstChild("QuestTitle")
+    if questGui then
+        local questText = questGui.TextLabel.Text or ""
+        -- Example check: if quest text contains "Complete" or similar, finish quest
+        -- Replace below with your actual condition or detection
+        if questText:lower():find("complete") then
+            ReplicatedStorage.Remotes.CommF_:InvokeServer("FinishQuest", questName, 1)
+            wait(1)
+            -- Start new quest
+            ReplicatedStorage.Remotes.CommF_:InvokeServer("StartQuest", questName, 1)
+            wait(1)
+            return true
+        end
+    end
+    return false
+end
+
+-- Auto Farm (NPCs + Quest) with auto attack from above
 spawn(function()
     while wait(0.5) do
         if not _G.AutoFarm then continue end
@@ -76,13 +97,19 @@ spawn(function()
             local hrp = char:FindFirstChild("HumanoidRootPart")
             if not hrp then return end
 
+            local questName = "BanditQuest1"
+            local enemyName = "Bandit"
+
             -- Auto Quest Pickup if no quest active
             if not player.PlayerGui:FindFirstChild("QuestTitle") then
-                ReplicatedStorage.Remotes.CommF_:InvokeServer("StartQuest", "BanditQuest1", 1)
+                ReplicatedStorage.Remotes.CommF_:InvokeServer("StartQuest", questName, 1)
+                wait(1)
             end
 
+            -- Check if quest finished, if yes finish and start again
+            finishQuestIfComplete(questName)
+
             -- Find closest enemy NPC
-            local enemyName = "Bandit"
             local target, closestDist = nil, MAX_DISTANCE + 1
             for _, enemy in pairs(workspace.Enemies:GetChildren()) do
                 if enemy.Name == enemyName and enemy:FindFirstChild("Humanoid") and enemy.Humanoid.Health > 0 and enemy:FindFirstChild("HumanoidRootPart") then
@@ -100,8 +127,8 @@ spawn(function()
                 if humanoid and targetHRP then
                     repeat
                         if not _G.AutoFarm then break end
-                        -- Stay 2 studs in front of target
-                        hrp.CFrame = targetHRP.CFrame * CFrame.new(0, 0, 2)
+                        -- Stay 20 studs ABOVE target to avoid damage
+                        hrp.CFrame = targetHRP.CFrame * CFrame.new(0, 20, 0)
 
                         -- Equip tool
                         local equipped = equipCombatTool()
@@ -153,7 +180,8 @@ spawn(function()
                 local enemyHum = bestTarget.Character:FindFirstChild("Humanoid")
                 repeat
                     if not _G.AutoBountyFarm then break end
-                    hrp.CFrame = targetHRP.CFrame * CFrame.new(0, 0, 2)
+                    -- Stay 20 studs above player target to avoid damage
+                    hrp.CFrame = targetHRP.CFrame * CFrame.new(0, 20, 0)
 
                     -- Equip tool
                     local equipped = equipCombatTool()

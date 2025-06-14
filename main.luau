@@ -1,6 +1,7 @@
 -- ✅ CONFIGURATION
 _G.AutoFarm = true
 _G.AutoBountyFarm = true
+_G.UseAnimations = true
 local BOUNTY_THRESHOLD = 100000 -- Minimum bounty to target players
 local MAX_DISTANCE = 300 -- Max distance to engage targets
 local ANIMATION_ID = "rbxassetid://507770239" -- Sword slash animation (replace as you want)
@@ -9,6 +10,39 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local VirtualInputManager = game:GetService("VirtualInputManager")
 local player = Players.LocalPlayer
+
+-- 🖥️ Create Toggle GUI
+local function createToggleGui()
+    local screenGui = Instance.new("ScreenGui")
+    screenGui.Name = "FarhansHubGUI"
+    screenGui.ResetOnSpawn = false
+    screenGui.Parent = player:WaitForChild("PlayerGui")
+
+    local function createButton(name, position, defaultState, callback)
+        local button = Instance.new("TextButton")
+        button.Size = UDim2.new(0, 150, 0, 35)
+        button.Position = position
+        button.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+        button.BorderColor3 = Color3.new(0, 0, 0)
+        button.TextColor3 = Color3.new(1, 1, 1)
+        button.Font = Enum.Font.GothamBold
+        button.TextSize = 18
+        button.Text = name .. ": " .. (defaultState and "ON" or "OFF")
+        button.Parent = screenGui
+
+        local state = defaultState
+        button.MouseButton1Click:Connect(function()
+            state = not state
+            button.Text = name .. ": " .. (state and "ON" or "OFF")
+            callback(state)
+        end)
+    end
+
+    createButton("AutoFarm", UDim2.new(0, 20, 0, 50), _G.AutoFarm, function(v) _G.AutoFarm = v end)
+    createButton("AutoBounty", UDim2.new(0, 20, 0, 100), _G.AutoBountyFarm, function(v) _G.AutoBountyFarm = v end)
+    createButton("Animations", UDim2.new(0, 20, 0, 150), _G.UseAnimations, function(v) _G.UseAnimations = v end)
+end
+createToggleGui()
 
 -- Load attack animation for character
 local function loadAttackAnimation(character)
@@ -52,8 +86,11 @@ spawn(function()
             -- Attack enemy with animation and M1 clicks
             if target then
                 hrp.CFrame = target.HumanoidRootPart.CFrame * CFrame.new(0, 5, 0)
-                local animTrack = loadAttackAnimation(char)
-                if animTrack then animTrack:Play() end
+                local animTrack
+                if _G.UseAnimations then
+                    animTrack = loadAttackAnimation(char)
+                    if animTrack then animTrack:Play() end
+                end
 
                 repeat
                     VirtualInputManager:SendMouseButtonEvent(true, 0, 0, game) -- M1 Down
@@ -83,23 +120,5 @@ spawn(function()
                     local bountyValue = plr.Data.Bounty and plr.Data.Bounty.Value or 0
                     if isPvP and bountyValue >= BOUNTY_THRESHOLD then
                         local targetHRP = plr.Character:FindFirstChild("HumanoidRootPart")
-                        local distance = (hrp.Position - targetHRP.Position).Magnitude
-                        if distance <= MAX_DISTANCE then
-                            hrp.CFrame = targetHRP.CFrame * CFrame.new(0, 5, 0)
+                        local distance =
 
-                            local animTrack = loadAttackAnimation(char)
-                            if animTrack then animTrack:Play() end
-
-                            VirtualInputManager:SendMouseButtonEvent(true, 0, 0, game) -- M1 Down
-                            wait(0.1)
-                            VirtualInputManager:SendMouseButtonEvent(false, 0, 0, game) -- M1 Up
-                            wait(1.5)
-
-                            if animTrack then animTrack:Stop() end
-                        end
-                    end
-                end
-            end
-        end)
-    end
-end)

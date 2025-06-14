@@ -1,193 +1,170 @@
--- ✅ CONFIGURATION
-_G.AutoFarm = true
-_G.AutoBountyFarm = true
-_G.AutoEquipF3X = true
-_G.Float = true
-
-local BOUNTY_THRESHOLD = 100000 -- Minimum bounty to target players
-local MAX_DISTANCE = 300 -- Max distance to engage targets
-
+-- Services
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local VirtualInputManager = game:GetService("VirtualInputManager")
+local RunService = game:GetService("RunService")
+
 local player = Players.LocalPlayer
 
--- 📟 Simple Toggle GUI
-local function createToggleGui()
-    local screenGui = Instance.new("ScreenGui")
-    screenGui.Name = "AutoFarmGUI"
-    screenGui.ResetOnSpawn = false
-    screenGui.Parent = player:WaitForChild("PlayerGui")
+-- Config
+local config = {
+    AutoFarm = true,
+    AutoBounty = true,
+    AutoEquipF3X = true,
+    BountyThreshold = 100000,
+    MaxDistance = 300,
+}
 
-    local function createButton(name, pos, defaultState, callback)
-        local button = Instance.new("TextButton")
-        button.Size = UDim2.new(0, 150, 0, 30)
-        button.Position = pos
-        button.Text = name .. ": " .. (defaultState and "ON" or "OFF")
-        button.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-        button.TextColor3 = Color3.new(1, 1, 1)
-        button.Font = Enum.Font.SourceSans
-        button.TextSize = 18
-        button.Parent = screenGui
+-- UI
+local ScreenGui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
+ScreenGui.Name = "AutoFarmUI"
 
-        local state = defaultState
-        button.MouseButton1Click:Connect(function()
-            state = not state
-            button.Text = name .. ": " .. (state and "ON" or "OFF")
-            callback(state)
-            print("[GUI] " .. name .. " toggled to " .. (state and "ON" or "OFF"))
-        end)
-    end
+local function createToggle(name, position, initialValue, callback)
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(0, 140, 0, 30)
+    btn.Position = position
+    btn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    btn.BorderSizePixel = 0
+    btn.TextColor3 = Color3.new(1,1,1)
+    btn.Font = Enum.Font.Gotham
+    btn.TextSize = 18
+    btn.Text = name .. ": ON"
+    btn.Parent = ScreenGui
 
-    createButton("AutoFarm", UDim2.new(0, 20, 0, 50), _G.AutoFarm, function(v) _G.AutoFarm = v end)
-    createButton("AutoBounty", UDim2.new(0, 20, 0, 90), _G.AutoBountyFarm, function(v) _G.AutoBountyFarm = v end)
-    createButton("AutoEquipF3X", UDim2.new(0, 20, 0, 130), _G.AutoEquipF3X, function(v) _G.AutoEquipF3X = v end)
-    createButton("Float", UDim2.new(0, 20, 0, 170), _G.Float, function(v) _G.Float = v end)
+    local state = initialValue
+
+    btn.MouseButton1Click:Connect(function()
+        state = not state
+        btn.Text = name .. ": " .. (state and "ON" or "OFF")
+        callback(state)
+    end)
+
+    return btn, function() return state end
 end
-createToggleGui()
 
--- ♻️ Auto Respawn Support
+-- State Toggles
+local getAutoFarm, getAutoBounty, getAutoEquip
+createToggle("AutoFarm", UDim2.new(0, 20, 0, 50), true, function(v) config.AutoFarm = v end)
+createToggle("AutoBounty", UDim2.new(0, 20, 0, 90), true, function(v) config.AutoBounty = v end)
+createToggle("AutoEquipF3X", UDim2.new(0, 20, 0, 130), true, function(v) config.AutoEquipF3X = v end)
+
+-- Utility function to click M1
+local function clickM1()
+    VirtualInputManager:SendMouseButtonEvent(0, 0, 0, true, game, 1)
+    task.wait(0.05)
+    VirtualInputManager:SendMouseButtonEvent(0, 0, 0, false, game, 1)
+end
+
+-- Auto Quest Pickup
+local function pickupQuest()
+    if not player.PlayerGui:FindFirstChild("QuestTitle") then
+        local success, err = pcall(function()
+            ReplicatedStorage.Remotes.CommF_:InvokeServer("StartQuest", "BanditQuest1", 1)
+        end)
+        if not success then
+            warn("Failed to start quest:", err)
+        end
+    end
+end
+
+-- Find target enemy within max distance
+local function findEnemy(enemyName, hrp)
+    for _, enemy in pairs(workspace.Enemies:GetChildren()) do
+        if enemy.Name == enemyName and enemy:FindFirstChild("Humanoid") and enemy.Humanoid.Health > 0 then
+            local enemyHRP = enemy:FindFirstChild("HumanoidRootPart")
+            if enemyHRP and (hrp.Position - enemyHRP.Position).Magnitude <= config.MaxDistance then
+                return enemy
+            end
+        end
+    end
+    return nil
+end
+
+-- Attack enemy using key presses + M1 clicks
+local function attackEnemy(enemy)
+    local char = player.Character
+    if not char then return end
+    local hrp = char:FindFirstChild("HumanoidRootPart")
+    local hum = char:FindFirstChildOfClass("Humanoid")
+    if not hrp or not hum or not enemy or not enemy:FindFirstChild("HumanoidRootPart") then return end
+
+    hrp.CFrame = enemy.HumanoidRootPart.CFrame * CFrame.new(0, 5, 0)
+
+    while config.AutoFarm and enemy.Humanoid.Health > 0 and hum.Health > 0 do
+        for _, key in ipairs({"Z", "X", "C"}) do
+            VirtualInputManager:SendKeyEvent(true, key, false, game)
+            task.wait(0.1)
+            VirtualInputManager:SendKeyEvent(false, key, false, game)
+            task.wait(0.1)
+        end
+        clickM1()
+        task.wait(0.1)
+    end
+end
+
+-- Auto Farm loop
+RunService.Heartbeat:Connect(function()
+    if not config.AutoFarm then return end
+    local char = player.Character
+    if not char then return end
+    local hrp = char:FindFirstChild("HumanoidRootPart")
+    if not hrp then return end
+
+    pickupQuest()
+
+    local targetEnemy = findEnemy("Bandit", hrp)
+    if targetEnemy then
+        attackEnemy(targetEnemy)
+    end
+end)
+
+-- Auto Bounty Hunt
+RunService.Heartbeat:Connect(function()
+    if not config.AutoBounty then return end
+    local char = player.Character
+    if not char then return end
+    local hrp = char:FindFirstChild("HumanoidRootPart")
+    if not hrp then return end
+
+    for _, plr in pairs(Players:GetPlayers()) do
+        if plr ~= player and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") and plr:FindFirstChild("Data") then
+            local combatFolder = plr:FindFirstChild("CombatFolder")
+            local bounty = plr.Data:FindFirstChild("Bounty")
+            if combatFolder and bounty and bounty.Value >= config.BountyThreshold then
+                local targetHRP = plr.Character.HumanoidRootPart
+                if (hrp.Position - targetHRP.Position).Magnitude <= config.MaxDistance then
+                    hrp.CFrame = targetHRP.CFrame * CFrame.new(0, 5, 0)
+                    for _, key in ipairs({"Z", "X", "C"}) do
+                        VirtualInputManager:SendKeyEvent(true, key, false, game)
+                        task.wait(0.1)
+                        VirtualInputManager:SendKeyEvent(false, key, false, game)
+                        task.wait(0.1)
+                    end
+                    clickM1()
+                    task.wait(1.5)
+                end
+            end
+        end
+    end
+end)
+
+-- Auto Equip F3X Tool
+RunService.Heartbeat:Connect(function()
+    if not config.AutoEquipF3X then return end
+    local backpack = player:FindFirstChild("Backpack")
+    local char = player.Character
+    if not char or not backpack then return end
+
+    local humanoid = char:FindFirstChildOfClass("Humanoid")
+    if not humanoid then return end
+
+    local tool = backpack:FindFirstChild("F3X") or char:FindFirstChild("F3X")
+    if tool and not char:FindFirstChildOfClass("Tool") then
+        humanoid:EquipTool(tool)
+    end
+end)
+
+-- Respawn Support
 player.CharacterAdded:Connect(function()
-    print("[Respawn] Character added, waiting 3 seconds...")
-    wait(3)
-    print("[Respawn] Ready")
+    task.wait(3)
 end)
-
--- 🧊 Float in Air Support
-local function enableFloat()
-    print("[Float] Enabling float...")
-    local floatVelocity = Instance.new("BodyVelocity")
-    floatVelocity.Velocity = Vector3.new(0, 20, 0)
-    floatVelocity.MaxForce = Vector3.new(0, math.huge, 0)
-    floatVelocity.Name = "FloatVel"
-    return floatVelocity
-end
-
--- 🤖 Auto Farm (NPCs + Quest)
-spawn(function()
-    while wait(0.5) do
-        if not _G.AutoFarm then continue end
-        pcall(function()
-            local char = player.Character or player.CharacterAdded:Wait()
-            local hrp = char:FindFirstChild("HumanoidRootPart")
-            if not hrp then
-                print("[AutoFarm] No HumanoidRootPart found")
-                return
-            end
-
-            if _G.Float and not hrp:FindFirstChild("FloatVel") then
-                local float = enableFloat()
-                float.Parent = hrp
-            elseif not _G.Float and hrp:FindFirstChild("FloatVel") then
-                hrp.FloatVel:Destroy()
-                print("[Float] Disabled")
-            end
-
-            local enemyName = "Bandit"
-            local questName = "BanditQuest1"
-
-            -- Auto Quest Pickup
-            if not player.PlayerGui:FindFirstChild("QuestTitle") then
-                print("[AutoFarm] Starting quest:", questName)
-                ReplicatedStorage.Remotes.CommF_:InvokeServer("StartQuest", questName, 1)
-            end
-
-            local target, closestDist = nil, MAX_DISTANCE + 1
-            for _, enemy in pairs(workspace.Enemies:GetChildren()) do
-                if enemy.Name == enemyName and enemy:FindFirstChild("Humanoid") and enemy.Humanoid.Health > 0 and enemy:FindFirstChild("HumanoidRootPart") then
-                    local dist = (hrp.Position - enemy.HumanoidRootPart.Position).Magnitude
-                    if dist < closestDist then
-                        closestDist = dist
-                        target = enemy
-                    end
-                end
-            end
-
-            if target then
-                print("[AutoFarm] Attacking enemy:", target.Name)
-                hrp.CFrame = target.HumanoidRootPart.CFrame * CFrame.new(0, 5, 0)
-                repeat
-                    ReplicatedStorage.Remotes.CommF_:FireServer("Attack")
-                    wait(0.3)
-                until not target or target.Humanoid.Health <= 0 or not _G.AutoFarm
-                print("[AutoFarm] Enemy defeated or farm stopped")
-            else
-                print("[AutoFarm] No valid enemy found")
-            end
-        end)
-    end
-end)
-
--- 🔥 Auto Bounty Farm (Players)
-spawn(function()
-    while wait(1) do
-        if not _G.AutoBountyFarm then continue end
-        pcall(function()
-            local char = player.Character or player.CharacterAdded:Wait()
-            local hrp = char and char:FindFirstChild("HumanoidRootPart")
-            if not hrp then
-                print("[AutoBounty] No HumanoidRootPart found")
-                return
-            end
-
-            if _G.Float and not hrp:FindFirstChild("FloatVel") then
-                local float = enableFloat()
-                float.Parent = hrp
-            elseif not _G.Float and hrp:FindFirstChild("FloatVel") then
-                hrp.FloatVel:Destroy()
-                print("[Float] Disabled")
-            end
-
-            local bestTarget = nil
-            local bestDistance = MAX_DISTANCE + 1
-
-            for _, plr in pairs(Players:GetPlayers()) do
-                if plr ~= player and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") and plr:FindFirstChild("Data") then
-                    local bountyValue = plr.Data:FindFirstChild("Bounty") and plr.Data.Bounty.Value or 0
-                    local isPvP = plr:FindFirstChild("CombatFolder")
-                    if isPvP and bountyValue >= BOUNTY_THRESHOLD then
-                        local targetHRP = plr.Character:FindFirstChild("HumanoidRootPart")
-                        local dist = (hrp.Position - targetHRP.Position).Magnitude
-                        if dist < bestDistance and dist <= MAX_DISTANCE then
-                            bestTarget = plr
-                            bestDistance = dist
-                        end
-                    end
-                end
-            end
-
-            if bestTarget and bestTarget.Character and bestTarget.Character:FindFirstChild("Humanoid") then
-                print("[AutoBounty] Attacking player:", bestTarget.Name)
-                local targetHRP = bestTarget.Character:FindFirstChild("HumanoidRootPart")
-                local enemyHum = bestTarget.Character:FindFirstChild("Humanoid")
-                hrp.CFrame = targetHRP.CFrame * CFrame.new(0, 5, 0)
-                repeat
-                    ReplicatedStorage.Remotes.CommF_:FireServer("Attack")
-                    wait(0.3)
-                until not enemyHum or enemyHum.Health <= 0 or not _G.AutoBountyFarm
-                print("[AutoBounty] Player defeated or bounty farm stopped")
-            else
-                print("[AutoBounty] No valid bounty target found")
-            end
-        end)
-    end
-end)
-
--- 🧰 Auto Equip F3X Tool
-spawn(function()
-    while wait(2) do
-        if not _G.AutoEquipF3X then continue end
-        pcall(function()
-            local backpack = player:FindFirstChild("Backpack")
-            local character = player.Character or player.CharacterAdded:Wait()
-            for _, tool in pairs(backpack:GetChildren()) do
-                if tool:IsA("Tool") and not character:FindFirstChildOfClass("Tool") then
-                    character.Humanoid:EquipTool(tool)
-                    print("[AutoEquip] Equipped tool:", tool.Name)
-                    break
-                end
-            end
-        end)
-    end
-end)
-

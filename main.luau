@@ -8,9 +8,8 @@ local MAX_DISTANCE = 300 -- Max distance to engage targets
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local player = Players.LocalPlayer
-local Backpack = player:WaitForChild("Backpack")
 
--- 📟 Simple Toggle GUI (Only AutoFarm and AutoBounty)
+-- 📟 Simple Toggle GUI
 local function createToggleGui()
     local screenGui = Instance.new("ScreenGui")
     screenGui.Name = "AutoFarmGUI"
@@ -46,7 +45,7 @@ player.CharacterAdded:Connect(function()
     wait(3)
 end)
 
--- Equip any tool in backpack to character
+-- Equip a melee tool function
 local function equipTool()
     local char = player.Character
     if not char then return end
@@ -58,25 +57,7 @@ local function equipTool()
     end
 end
 
--- Check if quest is completed (you may need to adjust based on your game)
-local function isQuestComplete()
-    -- Try to detect quest completion via GUI or a value (example, adjust to your game)
-    local questGui = player.PlayerGui:FindFirstChild("QuestTitle")
-    if not questGui then
-        return true
-    end
-    -- You can add additional checks if needed
-    return false
-end
-
--- Complete quest by invoking the server (adjust if your game uses different parameters)
-local function completeQuest(questName)
-    pcall(function()
-        ReplicatedStorage.Remotes.CommF_:InvokeServer("CompleteQuest", questName)
-    end)
-end
-
--- 🤖 Auto Farm (NPCs + Quest)
+-- 🤖 Auto Farm (NPCs + Quest) with auto equip and attack
 spawn(function()
     while wait(0.5) do
         if not _G.AutoFarm then continue end
@@ -85,28 +66,16 @@ spawn(function()
             local hrp = char:FindFirstChild("HumanoidRootPart")
             if not hrp then return end
 
-            equipTool()
-
             -- SETTINGS
-            local enemyName = "Bandit" -- Change this as needed
-            local questName = "BanditQuest1" -- Change this as needed
+            local enemyName = "Bandit" -- Adjust if you want different NPCs
+            local questName = "BanditQuest1" -- Adjust quest name to your farming quest
 
-            -- If quest not started, start it
+            -- Auto Quest Pickup
             if not player.PlayerGui:FindFirstChild("QuestTitle") then
                 ReplicatedStorage.Remotes.CommF_:InvokeServer("StartQuest", questName, 1)
-                wait(1)
             end
 
-            -- If quest is complete, finish it automatically
-            if isQuestComplete() then
-                completeQuest(questName)
-                wait(1)
-                -- Restart quest immediately for continuous farming
-                ReplicatedStorage.Remotes.CommF_:InvokeServer("StartQuest", questName, 1)
-                wait(1)
-            end
-
-            -- Find closest enemy NPC
+            -- Find Closest Valid Enemy NPC
             local target, closestDist = nil, MAX_DISTANCE + 1
             for _, enemy in pairs(workspace.Enemies:GetChildren()) do
                 if enemy.Name == enemyName and enemy:FindFirstChild("Humanoid") and enemy.Humanoid.Health > 0 and enemy:FindFirstChild("HumanoidRootPart") then
@@ -118,30 +87,34 @@ spawn(function()
                 end
             end
 
-            -- Attack NPC by standing close and attacking
+            -- Attack Enemy NPC by staying close and M1 attacking
             if target then
                 local targetHRP = target.HumanoidRootPart
                 local humanoid = target.Humanoid
                 repeat
-                    if not target or not humanoid or humanoid.Health <= 0 then break end
+                    if not target or not humanoid or humanoid.Health <= 0 or not _G.AutoFarm then break end
 
-                    -- Move character close to enemy's feet (slightly above ground)
-                    hrp.CFrame = targetHRP.CFrame * CFrame.new(0, 3, 0)
+                    -- Move character very close to enemy (2 studs in front)
+                    hrp.CFrame = targetHRP.CFrame * CFrame.new(0, 0, 2)
 
-                    -- Fire attack command to server
+                    -- Equip melee tool
+                    equipTool()
+                    wait(0.2) -- small delay after equip
+
+                    -- Fire attack to server
                     local success, err = pcall(function()
                         ReplicatedStorage.Remotes.CommF_:FireServer("Attack")
                     end)
                     if not success then warn("Attack failed:", err) end
 
-                    wait(0.4)
+                    wait(0.5) -- attack cooldown
                 until not target or humanoid.Health <= 0 or not _G.AutoFarm
             end
         end)
     end
 end)
 
--- 🔥 Auto Bounty Farm (Players)
+-- 🔥 Auto Bounty Farm (Players) with auto equip and attack
 spawn(function()
     while wait(1) do
         if not _G.AutoBountyFarm then continue end
@@ -149,8 +122,6 @@ spawn(function()
             local char = player.Character or player.CharacterAdded:Wait()
             local hrp = char and char:FindFirstChild("HumanoidRootPart")
             if not hrp then return end
-
-            equipTool()
 
             local bestTarget = nil
             local bestDistance = MAX_DISTANCE + 1
@@ -174,12 +145,22 @@ spawn(function()
                 local targetHRP = bestTarget.Character:FindFirstChild("HumanoidRootPart")
                 local enemyHum = bestTarget.Character:FindFirstChild("Humanoid")
                 repeat
-                    hrp.CFrame = targetHRP.CFrame * CFrame.new(0, 3, 0) -- near ground
-                    ReplicatedStorage.Remotes.CommF_:FireServer("Attack")
-                    wait(0.3)
-                until not enemyHum or enemyHum.Health <= 0 or not _G.AutoBountyFarm
+                    if not bestTarget or not enemyHum or enemyHum.Health <= 0 or not _G.AutoBountyFarm then break end
+
+                    hrp.CFrame = targetHRP.CFrame * CFrame.new(0, 0, 2)
+
+                    -- Equip melee tool
+                    equipTool()
+                    wait(0.2)
+
+                    local success, err = pcall(function()
+                        ReplicatedStorage.Remotes.CommF_:FireServer("Attack")
+                    end)
+                    if not success then warn("Attack failed:", err) end
+
+                    wait(0.5)
+                until not bestTarget or enemyHum.Health <= 0 or not _G.AutoBountyFarm
             end
         end)
     end
 end)
-

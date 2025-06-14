@@ -7,10 +7,9 @@ local MAX_DISTANCE = 300 -- Max distance to engage targets
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local VirtualInputManager = game:GetService("VirtualInputManager")
 local player = Players.LocalPlayer
 
--- 📟 Simple Toggle GUI
+-- 📟 Simple Toggle GUI (without Float button)
 local function createToggleGui()
     local screenGui = Instance.new("ScreenGui")
     screenGui.Name = "AutoFarmGUI"
@@ -41,54 +40,70 @@ local function createToggleGui()
 end
 createToggleGui()
 
--- ♻️ Auto Respawn Support
+-- Auto Respawn Support
 player.CharacterAdded:Connect(function()
     wait(3)
 end)
 
--- Equip combat tool by name
+-- Equip combat tool function
 local function equipCombatTool()
     local char = player.Character
     if not char then return false end
-
-    local toolName = "Combat" -- Change this to your exact tool name if different
-    local tool = char:FindFirstChildOfClass("Tool") or player.Backpack:FindFirstChild(toolName)
-    if tool and tool.Parent ~= char then
-        tool.Parent = char
-        wait(0.2)
+    for _, tool in pairs(char:GetChildren()) do
+        if tool:IsA("Tool") and tool.Name:lower():find("combat") then
+            player.Character.Humanoid:EquipTool(tool)
+            return true
+        end
     end
-    return tool and tool.Parent == char
-end
-
--- Simulate left mouse button click for attack
-local function doAttack()
-    VirtualInputManager:SendMouseButtonEvent(0, 0, 0, true, game, 1) -- mouse button down
-    wait(0.1)
-    VirtualInputManager:SendMouseButtonEvent(0, 0, 0, false, game, 1) -- mouse button up
-end
-
-local function finishQuestIfComplete(questName)
-    -- Checks if quest objective is complete and finishes quest if possible
-    -- This might depend on your game’s UI and quest system; adjust accordingly
-
-    local questGui = player.PlayerGui:FindFirstChild("QuestTitle")
-    if questGui then
-        local questText = questGui.TextLabel.Text or ""
-        -- Example check: if quest text contains "Complete" or similar, finish quest
-        -- Replace below with your actual condition or detection
-        if questText:lower():find("complete") then
-            ReplicatedStorage.Remotes.CommF_:InvokeServer("FinishQuest", questName, 1)
-            wait(1)
-            -- Start new quest
-            ReplicatedStorage.Remotes.CommF_:InvokeServer("StartQuest", questName, 1)
-            wait(1)
+    -- If no tool in character, check backpack
+    for _, tool in pairs(player.Backpack:GetChildren()) do
+        if tool:IsA("Tool") and tool.Name:lower():find("combat") then
+            player.Character.Humanoid:EquipTool(tool)
             return true
         end
     end
     return false
 end
 
--- Auto Farm (NPCs + Quest) with auto attack from above
+-- Auto attack function (fires the attack remote)
+local function doAttack()
+    ReplicatedStorage.Remotes.CommF_:FireServer("Attack")
+end
+
+-- Quest functions
+local function hasActiveQuest()
+    return player.PlayerGui:FindFirstChild("QuestTitle") ~= nil
+end
+
+local function isQuestComplete()
+    local questGui = player.PlayerGui:FindFirstChild("QuestTitle")
+    if questGui and questGui.TextLabel then
+        local txt = questGui.TextLabel.Text:lower()
+        -- Adjust this text check depending on your game's UI wording for quest completion
+        if txt:find("complete") or txt:find("finished") then
+            return true
+        end
+    end
+    return false
+end
+
+local function handleQuest(questName)
+    if not hasActiveQuest() then
+        ReplicatedStorage.Remotes.CommF_:InvokeServer("StartQuest", questName, 1)
+        wait(1)
+    elseif isQuestComplete() then
+        ReplicatedStorage.Remotes.CommF_:InvokeServer("FinishQuest", questName, 1)
+        wait(1)
+        ReplicatedStorage.Remotes.CommF_:InvokeServer("StartQuest", questName, 1)
+        wait(1)
+    end
+end
+
+local MAX_DISTANCE = 300
+local questName = "BanditQuest1"
+local enemyName = "Bandit"
+
+-- Auto Farm Thread
 spawn(function()
     while wait(0.5) do
         if not _G.AutoFarm then continue end
@@ -97,17 +112,8 @@ spawn(function()
             local hrp = char:FindFirstChild("HumanoidRootPart")
             if not hrp then return end
 
-            local questName = "BanditQuest1"
-            local enemyName = "Bandit"
-
-            -- Auto Quest Pickup if no quest active
-            if not player.PlayerGui:FindFirstChild("QuestTitle") then
-                ReplicatedStorage.Remotes.CommF_:InvokeServer("StartQuest", questName, 1)
-                wait(1)
-            end
-
-            -- Check if quest finished, if yes finish and start again
-            finishQuestIfComplete(questName)
+            -- Handle Quest properly
+            handleQuest(questName)
 
             -- Find closest enemy NPC
             local target, closestDist = nil, MAX_DISTANCE + 1
@@ -127,10 +133,10 @@ spawn(function()
                 if humanoid and targetHRP then
                     repeat
                         if not _G.AutoFarm then break end
-                        -- Stay 20 studs ABOVE target to avoid damage
+                        -- Stay 20 studs above to avoid damage
                         hrp.CFrame = targetHRP.CFrame * CFrame.new(0, 20, 0)
 
-                        -- Equip tool
+                        -- Equip combat tool
                         local equipped = equipCombatTool()
                         if not equipped then
                             warn("Failed to equip combat tool")
@@ -148,7 +154,7 @@ spawn(function()
     end
 end)
 
--- Auto Bounty Farm (Players) with auto attack
+-- Auto Bounty Farm Thread
 spawn(function()
     while wait(1) do
         if not _G.AutoBountyFarm then continue end
@@ -180,20 +186,9 @@ spawn(function()
                 local enemyHum = bestTarget.Character:FindFirstChild("Humanoid")
                 repeat
                     if not _G.AutoBountyFarm then break end
-                    -- Stay 20 studs above player target to avoid damage
-                    hrp.CFrame = targetHRP.CFrame * CFrame.new(0, 20, 0)
-
-                    -- Equip tool
-                    local equipped = equipCombatTool()
-                    if not equipped then
-                        warn("Failed to equip combat tool")
-                        wait(0.5)
-                        continue
-                    end
-
-                    -- Attack
-                    doAttack()
-                    wait(0.5)
+                    hrp.CFrame = targetHRP.CFrame * CFrame.new(0, 20, 0) -- float 20 studs above
+                    ReplicatedStorage.Remotes.CommF_:FireServer("Attack")
+                    wait(0.3)
                 until not enemyHum or enemyHum.Health <= 0 or not _G.AutoBountyFarm
             end
         end)

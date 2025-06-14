@@ -1,7 +1,6 @@
 -- ✅ CONFIGURATION
 _G.AutoFarm = false
 _G.AutoBountyFarm = false
-_G.Float = false
 
 local BOUNTY_THRESHOLD = 100000 -- Minimum bounty to target players
 local MAX_DISTANCE = 300 -- Max distance to engage targets
@@ -9,6 +8,7 @@ local MAX_DISTANCE = 300 -- Max distance to engage targets
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local player = Players.LocalPlayer
+local Backpack = player:WaitForChild("Backpack")
 
 -- 📟 Simple Toggle GUI
 local function createToggleGui()
@@ -38,7 +38,6 @@ local function createToggleGui()
 
     createButton("AutoFarm", UDim2.new(0, 20, 0, 50), _G.AutoFarm, function(v) _G.AutoFarm = v end)
     createButton("AutoBounty", UDim2.new(0, 20, 0, 90), _G.AutoBountyFarm, function(v) _G.AutoBountyFarm = v end)
-    createButton("Float", UDim2.new(0, 20, 0, 130), _G.Float, function(v) _G.Float = v end)
 end
 createToggleGui()
 
@@ -47,16 +46,20 @@ player.CharacterAdded:Connect(function()
     wait(3)
 end)
 
--- 🧊 Float in Air Support
-local function enableFloat()
-    local floatVelocity = Instance.new("BodyVelocity")
-    floatVelocity.Velocity = Vector3.new(0, 20, 0)
-    floatVelocity.MaxForce = Vector3.new(0, math.huge, 0)
-    floatVelocity.Name = "FloatVel"
-    return floatVelocity
+-- Helper: Equip any tool that looks like a weapon
+local function equipTool()
+    local char = player.Character
+    if not char then return end
+
+    for _, tool in ipairs(player.Backpack:GetChildren()) do
+        if tool:IsA("Tool") then
+            tool.Parent = char
+            break
+        end
+    end
 end
 
--- 🤖 Auto Farm (NPCs + Quest) with robust attack logic
+-- 🤖 Auto Farm (NPCs + Quest) without float
 spawn(function()
     while wait(0.5) do
         if not _G.AutoFarm then continue end
@@ -65,12 +68,8 @@ spawn(function()
             local hrp = char:FindFirstChild("HumanoidRootPart")
             if not hrp then return end
 
-            if _G.Float and not hrp:FindFirstChild("FloatVel") then
-                local float = enableFloat()
-                float.Parent = hrp
-            elseif not _G.Float and hrp:FindFirstChild("FloatVel") then
-                hrp.FloatVel:Destroy()
-            end
+            -- Equip tool before attacking
+            equipTool()
 
             -- SETTINGS
             local enemyName = "Bandit" -- Adjust if you want different NPCs
@@ -93,43 +92,30 @@ spawn(function()
                 end
             end
 
-            -- Attack Enemy NPC by staying above and attacking with multiple methods
+            -- Attack Enemy NPC by moving close and firing attack
             if target then
                 local targetHRP = target:FindFirstChild("HumanoidRootPart")
                 local humanoid = target:FindFirstChild("Humanoid")
                 repeat
                     if not target or not humanoid or humanoid.Health <= 0 then break end
-                    hrp.CFrame = targetHRP.CFrame * CFrame.new(0, 20, 0) -- float 20 studs above
 
-                    print("Trying to attack:", target.Name, "Health:", humanoid.Health)
+                    -- Move close to target (near ground)
+                    hrp.CFrame = targetHRP.CFrame * CFrame.new(0, 3, 0)
 
+                    -- Fire attack remote
                     local success, err = pcall(function()
                         ReplicatedStorage.Remotes.CommF_:FireServer("Attack")
                     end)
-                    if not success then warn("Attack FireServer 'Attack' failed:", err) end
+                    if not success then warn("Attack FireServer failed:", err) end
 
-                    wait(0.2)
-
-                    local successM1, errM1 = pcall(function()
-                        ReplicatedStorage.Remotes.CommF_:FireServer("M1")
-                    end)
-                    if not successM1 then warn("Attack FireServer 'M1' failed:", errM1) end
-
-                    wait(0.2)
-
-                    local successWithTarget, errWithTarget = pcall(function()
-                        ReplicatedStorage.Remotes.CommF_:FireServer("Attack", target)
-                    end)
-                    if not successWithTarget then warn("Attack FireServer 'Attack', target failed:", errWithTarget) end
-
-                    wait(0.3)
+                    wait(0.4)
                 until not target or humanoid.Health <= 0 or not _G.AutoFarm
             end
         end)
     end
 end)
 
--- 🔥 Auto Bounty Farm (Players) with auto M1 attack
+-- 🔥 Auto Bounty Farm (Players) without float
 spawn(function()
     while wait(1) do
         if not _G.AutoBountyFarm then continue end
@@ -138,12 +124,8 @@ spawn(function()
             local hrp = char and char:FindFirstChild("HumanoidRootPart")
             if not hrp then return end
 
-            if _G.Float and not hrp:FindFirstChild("FloatVel") then
-                local float = enableFloat()
-                float.Parent = hrp
-            elseif not _G.Float and hrp:FindFirstChild("FloatVel") then
-                hrp.FloatVel:Destroy()
-            end
+            -- Equip tool before attacking
+            equipTool()
 
             local bestTarget = nil
             local bestDistance = MAX_DISTANCE + 1
@@ -167,7 +149,7 @@ spawn(function()
                 local targetHRP = bestTarget.Character:FindFirstChild("HumanoidRootPart")
                 local enemyHum = bestTarget.Character:FindFirstChild("Humanoid")
                 repeat
-                    hrp.CFrame = targetHRP.CFrame * CFrame.new(0, 20, 0) -- float 20 studs above
+                    hrp.CFrame = targetHRP.CFrame * CFrame.new(0, 3, 0) -- near ground
                     ReplicatedStorage.Remotes.CommF_:FireServer("Attack")
                     wait(0.3)
                 until not enemyHum or enemyHum.Health <= 0 or not _G.AutoBountyFarm

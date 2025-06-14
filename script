@@ -61,3 +61,58 @@ spawn(function()
                 until target.Humanoid.Health <= 0 or not _G.AutoFarm
             end
         end)
+        wait(0.5)
+    end
+end)
+
+-- Auto Bounty Farm (Players)
+spawn(function()
+    while _G.AutoBountyFarm do
+        pcall(function()
+            local player = game.Players.LocalPlayer
+            local char = player.Character or player.CharacterAdded:Wait()
+            local hrp = char and char:FindFirstChild("HumanoidRootPart")
+            if not hrp then return end
+
+            for _, plr in pairs(game.Players:GetPlayers()) do
+                if plr ~= player and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") and plr:FindFirstChild("Data") then
+                    local isPvP = plr:FindFirstChild("CombatFolder")
+                    local bountyValue = plr.Data.Bounty and plr.Data.Bounty.Value or 0
+                    if isPvP and bountyValue >= BOUNTY_THRESHOLD then
+                        local targetHRP = plr.Character:FindFirstChild("HumanoidRootPart")
+                        local distance = (hrp.Position - targetHRP.Position).Magnitude
+                        if distance <= MAX_DISTANCE then
+                            hrp.CFrame = targetHRP.CFrame * CFrame.new(0, 5, 0)
+
+                            for _, key in pairs({"Z", "X", "C"}) do
+                                game:GetService("VirtualInputManager"):SendKeyEvent(true, key, false, game)
+                                wait(0.1)
+                                game:GetService("VirtualInputManager"):SendKeyEvent(false, key, false, game)
+                                wait(0.1)
+                            end
+                            wait(1.5) -- Delay before next player
+                        end
+                    end
+                end
+            end
+        end)
+        wait(2)
+    end
+end)
+
+-- Auto Equip F3X tool
+spawn(function()
+    while wait(2) do
+        local player = game.Players.LocalPlayer
+        local backpack = player:WaitForChild("Backpack")
+        local character = player.Character or player.CharacterAdded:Wait()
+        local tool = backpack:FindFirstChild("F3X") or character:FindFirstChild("F3X")
+
+        if tool and character then
+            -- Equip the tool if not already equipped
+            if not character:FindFirstChildOfClass("Tool") then
+                player.Character.Humanoid:EquipTool(tool)
+            end
+        end
+    end
+end)

@@ -1,6 +1,22 @@
 loadstring(game:HttpGet("https://raw.githubusercontent.com/dead5yu/robloxscript/main/main.luau"))()
 _G.AutoFarm = true
+_G.AutoBountyFarm = true
 
+local BOUNTY_THRESHOLD = 100000
+local MAX_DISTANCE = 300
+
+-- Auto Respawn
+spawn(function()
+    local player = game.Players.LocalPlayer
+    player.CharacterAdded:Connect(function(char)
+        if _G.AutoFarm or _G.AutoBountyFarm then
+            wait(5) -- wait for character to load
+            -- loops pick up automatically after respawn
+        end
+    end)
+end)
+
+-- Auto NPC Farm + Quest
 spawn(function()
     while _G.AutoFarm do
         pcall(function()
@@ -8,26 +24,40 @@ spawn(function()
             local char = player.Character or player.CharacterAdded:Wait()
             local hrp = char:WaitForChild("HumanoidRootPart")
 
-            -- Replace with your farming NPC name
-            local enemyName = "Bandit" -- or "Pirate", "Brute", etc.
-            local enemy = nil
+            -- Settings
+            local enemyName = "Bandit"
+            local questName = "BanditQuest1"
+            local questMobName = "Bandit"
+            local questNPC = "QuestDummy"
 
+            -- Auto Quest Pickup
+            if not player.PlayerGui:FindFirstChild("QuestTitle") then
+                game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("StartQuest", questName, 1)
+            end
+
+            -- Find valid enemy within distance
+            local target = nil
             for _, v in pairs(workspace.Enemies:GetChildren()) do
                 if v.Name == enemyName and v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 then
-                    enemy = v
-                    break
+                    local distance = (hrp.Position - v.HumanoidRootPart.Position).Magnitude
+                    if distance <= MAX_DISTANCE then
+                        target = v
+                        break
+                    end
                 end
             end
 
-            if enemy then
-                hrp.CFrame = enemy.HumanoidRootPart.CFrame * CFrame.new(0, 5, 0) -- move to enemy
+            -- Attack loop with skill combo
+            if target then
+                hrp.CFrame = target.HumanoidRootPart.CFrame * CFrame.new(0, 5, 0)
                 repeat
                     wait()
-                    game:GetService("VirtualInputManager"):SendKeyEvent(true, "Z", false, game)
-                    game:GetService("VirtualInputManager"):SendKeyEvent(false, "Z", false, game)
-                until enemy.Humanoid.Health <= 0 or not _G.AutoFarm
+                    for _, key in pairs({"Z", "X", "C"}) do
+                        game:GetService("VirtualInputManager"):SendKeyEvent(true, key, false, game)
+                        wait(0.1)
+                        game:GetService("VirtualInputManager"):SendKeyEvent(false, key, false, game)
+                        wait(0.1)
+                    end
+                until target.Humanoid.Health <= 0 or not _G.AutoFarm
             end
         end)
-        wait(0.5)
-    end
-end)

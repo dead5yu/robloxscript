@@ -56,7 +56,7 @@ local function enableFloat()
     return floatVelocity
 end
 
--- 🤖 Auto Farm (NPCs + Quest) with auto M1 attack
+-- 🤖 Auto Farm (NPCs + Quest) with robust attack logic
 spawn(function()
     while wait(0.5) do
         if not _G.AutoFarm then continue end
@@ -93,14 +93,37 @@ spawn(function()
                 end
             end
 
-            -- Attack Enemy NPC by staying on top and M1 attacking
+            -- Attack Enemy NPC by staying above and attacking with multiple methods
             if target then
-                local targetHRP = target.HumanoidRootPart
+                local targetHRP = target:FindFirstChild("HumanoidRootPart")
+                local humanoid = target:FindFirstChild("Humanoid")
                 repeat
+                    if not target or not humanoid or humanoid.Health <= 0 then break end
                     hrp.CFrame = targetHRP.CFrame * CFrame.new(0, 20, 0) -- float 20 studs above
-                    ReplicatedStorage.Remotes.CommF_:FireServer("Attack")
+
+                    print("Trying to attack:", target.Name, "Health:", humanoid.Health)
+
+                    local success, err = pcall(function()
+                        ReplicatedStorage.Remotes.CommF_:FireServer("Attack")
+                    end)
+                    if not success then warn("Attack FireServer 'Attack' failed:", err) end
+
+                    wait(0.2)
+
+                    local successM1, errM1 = pcall(function()
+                        ReplicatedStorage.Remotes.CommF_:FireServer("M1")
+                    end)
+                    if not successM1 then warn("Attack FireServer 'M1' failed:", errM1) end
+
+                    wait(0.2)
+
+                    local successWithTarget, errWithTarget = pcall(function()
+                        ReplicatedStorage.Remotes.CommF_:FireServer("Attack", target)
+                    end)
+                    if not successWithTarget then warn("Attack FireServer 'Attack', target failed:", errWithTarget) end
+
                     wait(0.3)
-                until not target or target.Humanoid.Health <= 0 or not _G.AutoFarm
+                until not target or humanoid.Health <= 0 or not _G.AutoFarm
             end
         end)
     end

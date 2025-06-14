@@ -1,41 +1,34 @@
-loadstring(game:HttpGet("https://raw.githubusercontent.com/dead5yu/robloxscript/main/main.luau"))()
+-- ✅ CONFIGURATION
 _G.AutoFarm = true
 _G.AutoBountyFarm = true
+local BOUNTY_THRESHOLD = 100000 -- Minimum bounty to target players
+local MAX_DISTANCE = 300 -- Max distance to engage targets
 
-local BOUNTY_THRESHOLD = 100000
-local MAX_DISTANCE = 300
+local player = game.Players.LocalPlayer
 
--- Auto Respawn
-spawn(function()
-    local player = game.Players.LocalPlayer
-    player.CharacterAdded:Connect(function(char)
-        if _G.AutoFarm or _G.AutoBountyFarm then
-            wait(5) -- wait for character to load
-            -- loops pick up automatically after respawn
-        end
-    end)
+-- ♻️ Auto Respawn Support
+player.CharacterAdded:Connect(function()
+    wait(3)
 end)
 
--- Auto NPC Farm + Quest
+-- 🤖 Auto Farm (NPCs + Quest)
 spawn(function()
     while _G.AutoFarm do
         pcall(function()
-            local player = game.Players.LocalPlayer
             local char = player.Character or player.CharacterAdded:Wait()
             local hrp = char:WaitForChild("HumanoidRootPart")
 
-            -- Settings
+            -- 🔧 SETTINGS
             local enemyName = "Bandit"
             local questName = "BanditQuest1"
             local questMobName = "Bandit"
-            local questNPC = "QuestDummy"
 
-            -- Auto Quest Pickup
+            -- ✅ Auto Quest Pickup
             if not player.PlayerGui:FindFirstChild("QuestTitle") then
                 game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("StartQuest", questName, 1)
             end
 
-            -- Find valid enemy within distance
+            -- 🎯 Find Valid Enemy
             local target = nil
             for _, v in pairs(workspace.Enemies:GetChildren()) do
                 if v.Name == enemyName and v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 then
@@ -47,17 +40,17 @@ spawn(function()
                 end
             end
 
-            -- Attack loop with skill combo
+            -- ⚔️ Attack Enemy
             if target then
                 hrp.CFrame = target.HumanoidRootPart.CFrame * CFrame.new(0, 5, 0)
                 repeat
-                    wait()
                     for _, key in pairs({"Z", "X", "C"}) do
                         game:GetService("VirtualInputManager"):SendKeyEvent(true, key, false, game)
                         wait(0.1)
                         game:GetService("VirtualInputManager"):SendKeyEvent(false, key, false, game)
                         wait(0.1)
                     end
+                    wait()
                 until target.Humanoid.Health <= 0 or not _G.AutoFarm
             end
         end)
@@ -65,13 +58,12 @@ spawn(function()
     end
 end)
 
--- Auto Bounty Farm (Players)
+-- 🔥 Auto Bounty Farm (Players)
 spawn(function()
     while _G.AutoBountyFarm do
         pcall(function()
-            local player = game.Players.LocalPlayer
             local char = player.Character or player.CharacterAdded:Wait()
-            local hrp = char and char:FindFirstChild("HumanoidRootPart")
+            local hrp = char:FindFirstChild("HumanoidRootPart")
             if not hrp then return end
 
             for _, plr in pairs(game.Players:GetPlayers()) do
@@ -90,7 +82,7 @@ spawn(function()
                                 game:GetService("VirtualInputManager"):SendKeyEvent(false, key, false, game)
                                 wait(0.1)
                             end
-                            wait(1.5) -- Delay before next player
+                            wait(1.5)
                         end
                     end
                 end
@@ -100,19 +92,15 @@ spawn(function()
     end
 end)
 
--- Auto Equip F3X tool
+-- 🧰 Auto Equip F3X Tool
 spawn(function()
     while wait(2) do
-        local player = game.Players.LocalPlayer
         local backpack = player:WaitForChild("Backpack")
         local character = player.Character or player.CharacterAdded:Wait()
         local tool = backpack:FindFirstChild("F3X") or character:FindFirstChild("F3X")
 
-        if tool and character then
-            -- Equip the tool if not already equipped
-            if not character:FindFirstChildOfClass("Tool") then
-                player.Character.Humanoid:EquipTool(tool)
-            end
+        if tool and character and not character:FindFirstChildOfClass("Tool") then
+            player.Character.Humanoid:EquipTool(tool)
         end
     end
 end)

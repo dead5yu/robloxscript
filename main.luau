@@ -56,7 +56,7 @@ local function enableFloat()
     return floatVelocity
 end
 
--- 🤖 Auto Farm (NPCs + Quest)
+-- 🤖 Auto Farm (NPCs + Quest) with auto M1 attack
 spawn(function()
     while wait(0.5) do
         if not _G.AutoFarm then continue end
@@ -93,11 +93,11 @@ spawn(function()
                 end
             end
 
-            -- Attack Enemy NPC by staying on top
+            -- Attack Enemy NPC by staying on top and M1 attacking
             if target then
                 local targetHRP = target.HumanoidRootPart
                 repeat
-                    hrp.CFrame = targetHRP.CFrame * CFrame.new(0, 5, 0)
+                    hrp.CFrame = targetHRP.CFrame * CFrame.new(0, 20, 0) -- float 20 studs above
                     ReplicatedStorage.Remotes.CommF_:FireServer("Attack")
                     wait(0.3)
                 until not target or target.Humanoid.Health <= 0 or not _G.AutoFarm
@@ -106,7 +106,7 @@ spawn(function()
     end
 end)
 
--- 🔥 Auto Bounty Farm (Players)
+-- 🔥 Auto Bounty Farm (Players) with auto M1 attack
 spawn(function()
     while wait(1) do
         if not _G.AutoBountyFarm then continue end
@@ -144,7 +144,7 @@ spawn(function()
                 local targetHRP = bestTarget.Character:FindFirstChild("HumanoidRootPart")
                 local enemyHum = bestTarget.Character:FindFirstChild("Humanoid")
                 repeat
-                    hrp.CFrame = targetHRP.CFrame * CFrame.new(0, 5, 0)
+                    hrp.CFrame = targetHRP.CFrame * CFrame.new(0, 20, 0) -- float 20 studs above
                     ReplicatedStorage.Remotes.CommF_:FireServer("Attack")
                     wait(0.3)
                 until not enemyHum or enemyHum.Health <= 0 or not _G.AutoBountyFarm
@@ -152,4 +152,3 @@ spawn(function()
         end)
     end
 end)
-

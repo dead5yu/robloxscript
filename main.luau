@@ -144,3 +144,15 @@ spawn(function()
     end
 end)
 "Add main.luau script"
+            local backpack = player:FindFirstChild("Backpack")
+            local character = player.Character or player.CharacterAdded:Wait()
+            local tool = backpack and backpack:FindFirstChild("F3X") or character:FindFirstChild("F3X")
+
+            if tool and character and not character:FindFirstChildOfClass("Tool") then
+                character.Humanoid:EquipTool(tool)
+
+            end
+        end)
+    end
+end)
+"Add main.luau script"

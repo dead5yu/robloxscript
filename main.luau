@@ -1,30 +1,25 @@
 local Plr = game.Players.LocalPlayer
-local Camera = game.Workspace.CurrentCamera
+local Camera = workspace.CurrentCamera
 local Speed = 50
 
 if not Plr.Character then
-	Plr.CharacterAdded:Wait()
+    Plr.CharacterAdded:Wait()
 end
 
 local HRP: BasePart = Plr.Character:WaitForChild("HumanoidRootPart")
+
+-- Setup BodyVelocity
 local FlyForce = Instance.new("BodyVelocity")
+FlyForce.Velocity = Vector3.zero
+FlyForce.MaxForce = Vector3.new(1e6, 1e6, 1e6)
+FlyForce.P = 1250
 FlyForce.Parent = HRP
 
-local GetMoveVector = require(Plr:WaitForChild("PlayerScripts").PlayerModule:WaitForChild("ControlModule"))
+-- Get movement input vector
+local GetMoveVector = require(Plr:WaitForChild("PlayerScripts"):WaitForChild("PlayerModule"):WaitForChild("ControlModule"))
 
-game["Run Service"].RenderStepped:Connect(function()
-	FlyForce.Velocity = Vector3.new()
-	local MoveDir: Vector3 = GetMoveVector:GetMoveVector()
-	if MoveDir.X > 0 then
-		FlyForce.Velocity = FlyForce.Velocity + Camera.CFrame.RightVector * MoveDir.X * Speed
-	end
-	if MoveDir.X < 0 then
-		FlyForce.Velocity = FlyForce.Velocity + Camera.CFrame.RightVector * MoveDir.X * Speed
-	end
-	if MoveDir.Z > 0 then
-		FlyForce.Velocity = FlyForce.Velocity - Camera.CFrame.LookVector * MoveDir.Z * Speed
-	end
-	if MoveDir.Z < 0 then
-		FlyForce.Velocity = FlyForce.Velocity - Camera.CFrame.LookVector * MoveDir.Z * Speed
-	end
+game:GetService("RunService").RenderStepped:Connect(function()
+    local moveVec: Vector3 = GetMoveVector:GetMoveVector()
+    local direction = (Camera.CFrame.RightVector * moveVec.X + Camera.CFrame.LookVector * moveVec.Z)
+    FlyForce.Velocity = direction * Speed
 end)

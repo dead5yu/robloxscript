@@ -1,4 +1,4 @@
-lulocal TweenService = game:GetService("TweenService")
+local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 local player = game.Players.LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
@@ -962,4 +962,3 @@ screenGui.AncestryChanged:Connect(function(_, newParent)
         end
     end
 end)
-

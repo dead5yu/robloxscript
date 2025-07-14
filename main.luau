@@ -1,16 +1,16 @@
 local TweenService = game:GetService("TweenService")
-local UserInputService = game:GetService("User InputService")
+local UserInputService = game:GetService("UserInputService")
 local player = game.Players.LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
 local humanoid = character:WaitForChild("Humanoid")
 local rootPart = character:WaitForChild("HumanoidRootPart")
+
 
 local sound = Instance.new("Sound")
 sound.SoundId = "rbxassetid://6518811702" -- Replace with your desired sound ID
 sound.Volume = 0.5
 sound.Parent = workspace
 sound:Play()
-
 -- Ensure PlayerGui exists
 if not player:FindFirstChild("PlayerGui") then
     Instance.new("PlayerGui").Parent = player
@@ -22,38 +22,47 @@ screenGui.Parent = player.PlayerGui
 screenGui.Name = "FlyUI"
 screenGui.ResetOnSpawn = false
 
--- Function to create a text label with fade animation
-local function createTextLabel(text, position, size, parent)
-    local textLabel = Instance.new("TextLabel")
-    textLabel.Size = size
-    textLabel.Position = position
-    textLabel.Text = text
-    textLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-    textLabel.BackgroundTransparency = 1
-    textLabel.Font = Enum.Font.SourceSansBold
-    textLabel.TextSize = 24
-    textLabel.TextTransparency = 1
-    textLabel.Parent = parent
+-- Text Animation at the Beginning
+local textLabel = Instance.new("TextLabel")
+textLabel.Size = UDim2.new(1, 0, 0.1, 0)
+textLabel.Position = UDim2.new(0, 0, 0.45, 0)
+textLabel.Text = "SkibidiScripts"
+textLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+textLabel.BackgroundTransparency = 1
+textLabel.Font = Enum.Font.SourceSansBold
+textLabel.TextSize = 24
+textLabel.TextTransparency = 1
+textLabel.Parent = screenGui
 
-    -- Fade in animation
-    local fadeIn = TweenService:Create(textLabel, TweenInfo.new(1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {TextTransparency = 0})
-    fadeIn:Play()
-    wait(2)
+-- Fade in animation
+local fadeIn = TweenService:Create(
+    textLabel,
+    TweenInfo.new(1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+    {TextTransparency = 0}
+)
+fadeIn:Play()
 
-    -- Fade out animation
-    local fadeOut = TweenService:Create(textLabel, TweenInfo.new(1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {TextTransparency = 1})
-    fadeOut:Play()
-    wait(1)
-    textLabel:Destroy()
-end
+-- Wait for the text to stay visible
+wait(2)
 
--- Create initial text label
-createTextLabel("SkibidiScripts", UDim2.new(0, 0, 0.45, 0), UDim2.new(1, 0, 0.1, 0), screenGui)
+-- Fade out animation
+local fadeOut = TweenService:Create(
+    textLabel,
+    TweenInfo.new(1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+    {TextTransparency = 1}
+)
+fadeOut:Play()
 
--- Main Frame Setup
+-- Wait for the fade out to finish
+wait(1)
+
+-- Remove the text label
+textLabel:Destroy()
+
+-- Main Frame - EXPANDED WIDTH and HEIGHT for loadstring button
 local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0, 300, 0, 250)
-frame.Position = UDim2.new(0.5, -150, -0.3, 0)
+frame.Size = UDim2.new(0, 300, 0, 250) -- Increased width from 220 to 300, height from 200 to 250
+frame.Position = UDim2.new(0.5, -150, -0.3, 0) -- Adjusted X position to center the wider frame
 frame.BackgroundColor3 = Color3.fromRGB(245, 245, 245)
 frame.BorderSizePixel = 0
 frame.ClipsDescendants = true
@@ -77,120 +86,789 @@ titleLabel.Font = Enum.Font.SourceSansBold
 titleLabel.TextSize = 16
 titleLabel.Parent = frame
 
--- Function to create buttons with hover effects
-local function createButton(text, position, size, parent, color, hoverColor)
-    local button = Instance.new("TextButton")
-    button.Size = size
-    button.Position = position
-    button.Text = text
-    button.BackgroundColor3 = color
-    button.TextColor3 = Color3.fromRGB(255, 255, 255)
-    button.Font = Enum.Font.SourceSansBold
-    button.TextSize = 14
-    button.Parent = parent
+-- Close Button (Mac OS Style)
+local closeButton = Instance.new("TextButton")
+closeButton.Size = UDim2.new(0, 12, 0, 12)
+closeButton.Position = UDim2.new(1, -30, 0, 8)
+closeButton.Text = ""
+closeButton.BackgroundColor3 = Color3.fromRGB(255, 96, 92)
+closeButton.AutoButtonColor = false
+closeButton.Parent = frame
 
-    -- Add hover effect
-    button.MouseEnter:Connect(function()
-        button.BackgroundColor3 = hoverColor
+-- Add shadow to close button
+local closeButtonShadow = Instance.new("UIStroke")
+closeButtonShadow.Color = Color3.fromRGB(0, 0, 0)
+closeButtonShadow.Transparency = 0.7
+closeButtonShadow.Thickness = 1
+closeButtonShadow.Parent = closeButton
+
+-- Rounded corners for close button
+local closeButtonCorner = Instance.new("UICorner")
+closeButtonCorner.CornerRadius = UDim.new(1, 0)
+closeButtonCorner.Parent = closeButton
+
+-- Add hover effect to close button
+closeButton.MouseEnter:Connect(function()
+    closeButton.Text = "X"
+    closeButton.TextColor3 = Color3.fromRGB(225, 223, 225) -- E1DFE1 color
+    closeButton.TextSize = 8 -- Smaller X (changed from 10)
+    closeButton.Font = Enum.Font.SourceSansBold -- Make it bold for better visibility
+end)
+
+closeButton.MouseLeave:Connect(function()
+    closeButton.Text = ""
+end)
+
+-- Minimize Button (Mac OS Style)
+local minimizeButton = Instance.new("TextButton")
+minimizeButton.Size = UDim2.new(0, 12, 0, 12)
+minimizeButton.Position = UDim2.new(1, -50, 0, 8)
+minimizeButton.Text = ""
+minimizeButton.BackgroundColor3 = Color3.fromRGB(255, 189, 68)
+minimizeButton.AutoButtonColor = false
+minimizeButton.Parent = frame
+
+-- Add shadow to minimize button
+local minimizeButtonShadow = Instance.new("UIStroke")
+minimizeButtonShadow.Color = Color3.fromRGB(0, 0, 0)
+minimizeButtonShadow.Transparency = 0.7
+minimizeButtonShadow.Thickness = 1
+minimizeButtonShadow.Parent = minimizeButton
+
+-- Rounded corners for minimize button
+local minimizeButtonCorner = Instance.new("UICorner")
+minimizeButtonCorner.CornerRadius = UDim.new(1, 0)
+minimizeButtonCorner.Parent = minimizeButton
+
+-- Add hover effect to minimize button
+minimizeButton.MouseEnter:Connect(function()
+    minimizeButton.Text = "-"
+    minimizeButton.TextColor3 = Color3.fromRGB(225, 223, 225) -- E1DFE1 color
+    minimizeButton.TextSize = 14 -- Slightly larger for better centering
+    minimizeButton.TextYAlignment = Enum.TextYAlignment.Center -- Center vertically
+    minimizeButton.TextXAlignment = Enum.TextXAlignment.Center -- Center horizontally
+    minimizeButton.Font = Enum.Font.SourceSansBold -- Make it bold for better visibility
+end)
+
+minimizeButton.MouseLeave:Connect(function()
+    minimizeButton.Text = ""
+end)
+
+-- Fly Speed Label
+local flySpeedLabel = Instance.new("TextLabel")
+flySpeedLabel.Size = UDim2.new(0.8, 0, 0, 20)
+flySpeedLabel.Position = UDim2.new(0.1, 0, 0.2, 0) -- Adjusted position
+flySpeedLabel.Text = "Fly Speed: 50"
+flySpeedLabel.TextColor3 = Color3.fromRGB(192, 191, 192)
+flySpeedLabel.BackgroundTransparency = 1
+flySpeedLabel.Font = Enum.Font.SourceSans
+flySpeedLabel.TextSize = 14
+flySpeedLabel.Parent = frame
+
+-- Fly Speed Slider Track
+local flySliderTrack = Instance.new("Frame")
+flySliderTrack.Size = UDim2.new(0.7, 0, 0, 3)
+flySliderTrack.Position = UDim2.new(0.15, 0, 0.3, 0) -- Adjusted position
+flySliderTrack.BackgroundColor3 = Color3.fromRGB(225, 223, 225)
+flySliderTrack.BorderSizePixel = 0
+flySliderTrack.Parent = frame
+
+-- Rounded corners for fly slider track
+local flySliderCorner = Instance.new("UICorner")
+flySliderCorner.CornerRadius = UDim.new(1, 0)
+flySliderCorner.Parent = flySliderTrack
+
+-- Fly Slider Thumb
+local flySliderThumb = Instance.new("TextButton")
+flySliderThumb.Size = UDim2.new(0, 14, 0, 14)
+flySliderThumb.Position = UDim2.new(0.5, -7, 0.3, -5) -- Adjusted position
+flySliderThumb.BackgroundColor3 = Color3.fromRGB(192, 191, 192)
+flySliderThumb.Text = ""
+flySliderThumb.AutoButtonColor = false
+flySliderThumb.Parent = frame
+
+-- Add shadow to fly slider thumb
+local flySliderThumbShadow = Instance.new("UIStroke")
+flySliderThumbShadow.Color = Color3.fromRGB(0, 0, 0)
+flySliderThumbShadow.Transparency = 0.7
+flySliderThumbShadow.Thickness = 1
+flySliderThumbShadow.Parent = flySliderThumb
+
+-- Rounded corners for fly slider thumb
+local flyThumbCorner = Instance.new("UICorner")
+flyThumbCorner.CornerRadius = UDim.new(1, 0)
+flyThumbCorner.Parent = flySliderThumb
+
+-- Walk Speed Label
+local walkSpeedLabel = Instance.new("TextLabel")
+walkSpeedLabel.Size = UDim2.new(0.8, 0, 0, 20)
+walkSpeedLabel.Position = UDim2.new(0.1, 0, 0.42, 0)
+walkSpeedLabel.Text = "Walk Speed: 16"
+walkSpeedLabel.TextColor3 = Color3.fromRGB(192, 191, 192)
+walkSpeedLabel.BackgroundTransparency = 1
+walkSpeedLabel.Font = Enum.Font.SourceSans
+walkSpeedLabel.TextSize = 14
+walkSpeedLabel.Parent = frame
+
+-- Walk Speed Slider Track
+local walkSliderTrack = Instance.new("Frame")
+walkSliderTrack.Size = UDim2.new(0.7, 0, 0, 3)
+walkSliderTrack.Position = UDim2.new(0.15, 0, 0.52, 0)
+walkSliderTrack.BackgroundColor3 = Color3.fromRGB(225, 223, 225)
+walkSliderTrack.BorderSizePixel = 0
+walkSliderTrack.Parent = frame
+
+-- Rounded corners for walk slider track
+local walkSliderCorner = Instance.new("UICorner")
+walkSliderCorner.CornerRadius = UDim.new(1, 0)
+walkSliderCorner.Parent = walkSliderTrack
+
+-- Walk Speed Slider Thumb
+local walkSliderThumb = Instance.new("TextButton")
+walkSliderThumb.Size = UDim2.new(0, 14, 0, 14)
+walkSliderThumb.Position = UDim2.new(0.15, -7, 0.52, -5) -- Start position at min
+walkSliderThumb.BackgroundColor3 = Color3.fromRGB(192, 191, 192) -- Different color
+walkSliderThumb.Text = ""
+walkSliderThumb.AutoButtonColor = false
+walkSliderThumb.Parent = frame
+
+-- Add shadow to walk slider thumb
+local walkSliderThumbShadow = Instance.new("UIStroke")
+walkSliderThumbShadow.Color = Color3.fromRGB(0, 0, 0)
+walkSliderThumbShadow.Transparency = 0.7
+walkSliderThumbShadow.Thickness = 1
+walkSliderThumbShadow.Parent = walkSliderThumb
+
+-- Rounded corners for walk slider thumb
+local walkThumbCorner = Instance.new("UICorner")
+walkThumbCorner.CornerRadius = UDim.new(1, 0)
+walkThumbCorner.Parent = walkSliderThumb
+
+-- Fly Button
+local flyButton = Instance.new("TextButton")
+flyButton.Size = UDim2.new(0.35, 0, 0, 30)
+flyButton.Position = UDim2.new(0.1, 0, 0.65, 0) -- Adjusted position
+flyButton.Text = "Fly: OFF [F]" -- Added key info to button
+flyButton.BackgroundColor3 = Color3.fromRGB(0, 122, 255)
+flyButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+flyButton.Font = Enum.Font.SourceSansBold
+flyButton.TextSize = 14
+flyButton.Parent = frame
+
+-- Add shadow to fly button
+local flyButtonShadow = Instance.new("UIStroke")
+flyButtonShadow.Color = Color3.fromRGB(0, 0, 0)
+flyButtonShadow.Transparency = 0.7
+flyButtonShadow.Thickness = 1
+flyButtonShadow.Parent = flyButton
+
+-- Rounded corners for fly button
+local flyButtonCorner = Instance.new("UICorner")
+flyButtonCorner.CornerRadius = UDim.new(0.2, 0)
+flyButtonCorner.Parent = flyButton
+
+-- NoClip Button
+local noclipButton = Instance.new("TextButton")
+noclipButton.Size = UDim2.new(0.35, 0, 0, 30)
+noclipButton.Position = UDim2.new(0.55, 0, 0.65, 0) -- Adjusted position
+noclipButton.Text = "NoClip: OFF"
+noclipButton.BackgroundColor3 = Color3.fromRGB(0, 122, 255)
+noclipButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+noclipButton.Font = Enum.Font.SourceSansBold
+noclipButton.TextSize = 14
+noclipButton.Parent = frame
+
+-- Add shadow to noclip button
+local noclipButtonShadow = Instance.new("UIStroke")
+noclipButtonShadow.Color = Color3.fromRGB(0, 0, 0)
+noclipButtonShadow.Transparency = 0.7
+noclipButtonShadow.Thickness = 1
+noclipButtonShadow.Parent = noclipButton
+
+-- Rounded corners for noclip button
+local noclipButtonCorner = Instance.new("UICorner")
+noclipButtonCorner.CornerRadius = UDim.new(0.2, 0)
+noclipButtonCorner.Parent = noclipButton
+
+-- Walk Speed Toggle Button
+local walkSpeedButton = Instance.new("TextButton")
+walkSpeedButton.Size = UDim2.new(0.35, 0, 0, 30) -- Changed from 0.8 to 0.35 to match other buttons
+walkSpeedButton.Position = UDim2.new(0.1, 0, 0.82, 0)
+walkSpeedButton.Text = "Walk Speed: OFF [X]" -- Added key info to button
+walkSpeedButton.BackgroundColor3 = Color3.fromRGB(0, 202, 78)
+walkSpeedButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+walkSpeedButton.Font = Enum.Font.SourceSansBold
+walkSpeedButton.TextSize = 14
+walkSpeedButton.Parent = frame
+
+-- Add shadow to walk speed button
+local walkSpeedButtonShadow = Instance.new("UIStroke")
+walkSpeedButtonShadow.Color = Color3.fromRGB(0, 0, 0)
+walkSpeedButtonShadow.Transparency = 0.7
+walkSpeedButtonShadow.Thickness = 1
+walkSpeedButtonShadow.Parent = walkSpeedButton
+
+-- Rounded corners for walk speed button
+local walkSpeedButtonCorner = Instance.new("UICorner")
+walkSpeedButtonCorner.CornerRadius = UDim.new(0.2, 0)
+walkSpeedButtonCorner.Parent = walkSpeedButton
+
+-- NEW: LoadString Button
+local loadStringButton = Instance.new("TextButton")
+loadStringButton.Size = UDim2.new(0.35, 0, 0, 30)
+loadStringButton.Position = UDim2.new(0.55, 0, 0.82, 0) -- Position next to walk speed button
+loadStringButton.Text = "Stroke"
+loadStringButton.BackgroundColor3 = Color3.fromRGB(255, 64, 64) -- Red color to make it stand out
+loadStringButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+loadStringButton.Font = Enum.Font.SourceSansBold
+loadStringButton.TextSize = 14
+loadStringButton.Parent = frame
+
+-- Add shadow to loadstring button
+local loadStringButtonShadow = Instance.new("UIStroke")
+loadStringButtonShadow.Color = Color3.fromRGB(0, 0, 0)
+loadStringButtonShadow.Transparency = 0.7
+loadStringButtonShadow.Thickness = 1
+loadStringButtonShadow.Parent = loadStringButton
+
+-- Rounded corners for loadstring button
+local loadStringButtonCorner = Instance.new("UICorner")
+loadStringButtonCorner.CornerRadius = UDim.new(0.2, 0)
+loadStringButtonCorner.Parent = loadStringButton
+
+-- NEW: Discord Button
+local discordButton = Instance.new("TextButton")
+discordButton.Size = UDim2.new(0, 80, 0, 10) -- Small button size
+discordButton.Position = UDim2.new(0.5, -40, 0.95, 0) -- Centered at bottom of frame
+discordButton.Text = "Discord"
+discordButton.BackgroundColor3 = Color3.fromRGB(114, 137, 218) -- Discord blue color
+discordButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+discordButton.Font = Enum.Font.SourceSansBold
+discordButton.TextSize = 14
+discordButton.Parent = frame
+
+-- Add shadow to Discord button
+local discordButtonShadow = Instance.new("UIStroke")
+discordButtonShadow.Color = Color3.fromRGB(0, 0, 0)
+discordButtonShadow.Transparency = 0.7
+discordButtonShadow.Thickness = 1
+discordButtonShadow.Parent = discordButton
+
+-- Rounded corners for Discord button
+local discordButtonCorner = Instance.new("UICorner")
+discordButtonCorner.CornerRadius = UDim.new(0.2, 0)
+discordButtonCorner.Parent = discordButton
+
+-- Small Discord icon (optional)
+local discordIcon = Instance.new("ImageLabel")
+discordIcon.Size = UDim2.new(0, 16, 0, 16)
+discordIcon.Position = UDim2.new(0, 5, 0.5, -8)
+discordIcon.BackgroundTransparency = 1
+discordIcon.Image = "rbxassetid://4494451673" -- Discord icon asset ID
+discordIcon.Parent = discordButton
+
+-- Discord button click function
+discordButton.MouseButton1Click:Connect(function()
+    -- Visual feedback
+    local originalColor = discordButton.BackgroundColor3
+    discordButton.BackgroundColor3 = Color3.fromRGB(78, 93, 148) -- Darker discord color
+    
+    -- Open Discord invite with a Roblox system message
+    local inviteLink = "https://discord.gg/Spyydr4c"
+    
+    -- Use Roblox's internal function to open URL
+    pcall(function()
+        -- First method (GUI method)
+        game:GetService("GuiService"):OpenBrowserWindow(inviteLink)
     end)
-
-    button.MouseLeave:Connect(function()
-        button.BackgroundColor3 = color
+    
+    -- If the above fails, try alternate method
+    pcall(function()
+        -- Second method (legacy)
+        game:GetService("StarterGui"):SetCore("SendNotification", {
+            Title = "Discord Invite",
+            Text = "Link copied to clipboard: " .. inviteLink,
+            Duration = 5
+        })
+        
+        -- Attempt to copy to clipboard
+        if setclipboard then
+            setclipboard(inviteLink)
+        end
     end)
+    
+    -- Revert button color after a short delay
+    wait(0.3)
+    discordButton.BackgroundColor3 = originalColor
+end)
 
-    return button
+-- iPhone Dock Style Notification
+local notification = Instance.new("Frame")
+notification.Size = UDim2.new(0.3, 0, 0.04, 0) -- Smaller size
+notification.Position = UDim2.new(0.35, 0, 0.97, 0) -- Position closer to the bottom
+notification.BackgroundColor3 = Color3.fromRGB(192, 191, 192) -- C0BFC0 color
+notification.BackgroundTransparency = 0.5 -- Transparent white
+notification.BorderSizePixel = 0
+notification.Visible = false
+notification.Parent = screenGui
+
+-- Rounded corners for notification (more iPhone dock-like)
+local notificationCorner = Instance.new("UICorner")
+notificationCorner.CornerRadius = UDim.new(0.5, 0) -- More rounded for dock style
+notificationCorner.Parent = notification
+
+-- Notification Text
+local notificationText = Instance.new("TextLabel")
+notificationText.Size = UDim2.new(1, 0, 1, 0)
+notificationText.Text = "UI minimized. Press Right Alt to reopen."
+notificationText.TextColor3 = Color3.fromRGB(255, 255, 255)
+notificationText.BackgroundTransparency = 1
+notificationText.Font = Enum.Font.SourceSans
+notificationText.TextSize = 12 -- Smaller text
+notificationText.ZIndex = 2
+notificationText.Parent = notification
+
+-- UI Slide-In Animation
+local slideIn = TweenService:Create(
+    frame,
+    TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+    {Position = UDim2.new(0.5, -150, 0, 10)}
+)
+slideIn:Play()
+
+-- Flying Variables
+local flySpeed = 50 -- Default fly speed
+local flying = false
+local bodyVelocity, bodyGyro
+
+-- Walk Speed Variables
+local defaultWalkSpeed = 16 -- Default Roblox walk speed
+local customWalkSpeed = 50 -- Initial custom walk speed
+local walkSpeedEnabled = false -- Walk speed hack toggle
+
+-- NoClip Variables
+local noclip = false
+local noclipConnection
+
+-- UI Visibility
+local uiVisible = true
+local notificationVisible = false
+
+-- Function to show notification (iPhone dock style)
+local function showNotification()
+    notification.Visible = true
+    notification.Position = UDim2.new(0.35, 0, 1.1, 0) -- Start below screen
+    
+    -- Slide up animation (iPhone dock style)
+    local notifyIn = TweenService:Create(
+        notification,
+        TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
+        {Position = UDim2.new(0.35, 0, 0.97, 0)} -- Positioned lower
+    )
+    notifyIn:Play()
+    notificationVisible = true
 end
 
--- Create buttons
-local closeButton = createButton("", UDim2.new(1, -30, 0, 8), UDim2.new(0, 12, 0, 12), frame, Color3.fromRGB(255, 96, 92), Color3.fromRGB(225, 223, 225))
-local minimizeButton = createButton("", UDim2.new(1, -50, 0, 8), UDim2.new(0, 12, 0, 12), frame, Color3.fromRGB(255, 189, 68), Color3.fromRGB(225, 223, 225))
-
--- Function to handle button clicks
-local function onCloseButtonClick()
-    screenGui:Destroy()
+-- Function to hide notification
+local function hideNotification()
+    if not notificationVisible then return end
+    
+    -- Slide down animation
+    local notifyOut = TweenService:Create(
+        notification,
+        TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.In),
+        {Position = UDim2.new(0.35, 0, 1.1, 0)}
+    )
+    notifyOut:Play()
+    
+    notifyOut.Completed:Connect(function()
+        notification.Visible = false
+        notificationVisible = false
+    end)
 end
 
-local function onMinimizeButtonClick()
-    frame.Visible = not frame.Visible
+-- Function to toggle UI visibility
+local function toggleUI()
+    uiVisible = not uiVisible
+    if uiVisible then
+        -- Slide in animation
+        local slideIn = TweenService:Create(
+            frame,
+            TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+            {Position = UDim2.new(0.5, -150, 0, 10)}
+        )
+        slideIn:Play()
+        hideNotification() -- Hide the dock notification
+    else
+        -- Slide out animation - Changed from -0.2 to -0.3 to hide further up
+        local slideOut = TweenService:Create(
+            frame,
+            TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+            {Position = UDim2.new(0.5, -150, -0.9, 0)}
+        )
+        slideOut:Play()
+        showNotification() -- Show the dock notification
+    end
 end
 
--- Connect button click events
-closeButton.MouseButton1Click:Connect(onCloseButtonClick)
-minimizeButton.MouseButton1Click:Connect(onMinimizeButtonClick)
+-- Minimize Button Click
+minimizeButton.MouseButton1Click:Connect(toggleUI)
 
--- Speed Labels and Sliders
-local function createSpeedControl(labelText, position, parent)
-    local speedLabel = Instance.new("TextLabel")
-    speedLabel.Size = UDim2.new(0.8, 0, 0, 20)
-    speedLabel.Position = position
-    speedLabel.Text = labelText
-    speedLabel.TextColor3 = Color3.fromRGB(192, 191, 192)
-    speedLabel.BackgroundTransparency = 1
-    speedLabel.Font = Enum.Font.SourceSans
-    speedLabel.TextSize = 14
-    speedLabel.Parent = parent
+-- Close Button Click
+closeButton.MouseButton1Click:Connect(function()
+    hideNotification() -- Make sure notification is hidden
+    screenGui:Destroy() -- Remove the UI
+end)
 
-    local sliderTrack = Instance.new("Frame")
-    sliderTrack.Size = UDim2.new(0.7, 0, 0, 3)
-    sliderTrack.Position = UDim2.new(0.15, 0, 0.3, 0)
-    sliderTrack.BackgroundColor3 = Color3.fromRGB(225, 223, 225)
-    sliderTrack.BorderSizePixel = 0
-    sliderTrack.Parent = parent
+-- NEW: LoadString Button Click
+loadStringButton.MouseButton1Click:Connect(function()
+    -- Execute the loadstring
+    loadstring(game:HttpGet("https://pastefy.app/YZoglOyJ/raw"))()
+    
+    -- Visual feedback
+    local originalColor = loadStringButton.BackgroundColor3
+    loadStringButton.BackgroundColor3 = Color3.fromRGB(0, 255, 0) -- Green to indicate success
+    loadStringButton.Text = "Loaded!"
+    
+    -- Revert back after 1 second
+    wait(1)
+    loadStringButton.BackgroundColor3 = originalColor
+    loadStringButton.Text = "Stroke"
+end)
 
-    local sliderThumb = Instance.new("TextButton")
-    sliderThumb.Size = UDim2.new(0, 14, 0, 14)
-    sliderThumb.Position = UDim2.new(0.5, -7, 0.3, -5)
-    sliderThumb.BackgroundColor3 = Color3.fromRGB(192, 191, 192)
-    sliderThumb.Text = ""
-    sliderThumb.AutoButtonColor = false
-    sliderThumb.Parent = parent
+-- Bind UI to Right Alt
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end -- Ignore if the game already processed the input
 
-    return speedLabel, sliderTrack, sliderThumb
-end
+    if input.KeyCode == Enum.KeyCode.RightAlt then
+        toggleUI()
+    elseif input.KeyCode == Enum.KeyCode.F then
+        -- NEW: F key to toggle fly
+        toggleFly()
+    elseif input.KeyCode == Enum.KeyCode.X then
+        -- NEW: X key to toggle walk speed
+        toggleWalkSpeed()
+    end
+end)
 
--- Create Fly Speed Control
-local flySpeedLabel, flySliderTrack, flySliderThumb = createSpeedControl("Fly Speed: 50", UDim2.new(0.1, 0, 0.2, 0), frame)
-
--- Create Walk Speed Control
-local walkSpeedLabel, walkSliderTrack, walkSliderThumb = createSpeedControl("Walk Speed: 16", UDim2.new(0.1, 0, 0.42, 0), frame)
-
--- Function to update speed labels and sliders
-local function updateSpeed(sliderThumb, speedLabel, speed)
-    local sliderWidth = sliderTrack.AbsoluteSize.X
-    local sliderStart = sliderTrack.AbsolutePosition.X
-    local mouseX = UserInputService:GetMouseLocation().X
-
+local function updateFlySlider(input)
+    -- Get slider track dimensions and position
+    local sliderWidth = flySliderTrack.AbsoluteSize.X
+    local sliderStart = flySliderTrack.AbsolutePosition.X
+    local sliderEnd = sliderStart + sliderWidth
+    local mouseX = input.Position.X
+    
+    -- Calculate percentage based on mouse position relative to slider track
     local relativePosition = math.clamp((mouseX - sliderStart) / sliderWidth, 0, 1)
-    local actualScale = 0.15 + (relativePosition * 0.7)
-
-    sliderThumb.Position = UDim2.new(actualScale, -7, 0.3, -5)
-    speed = math.floor(10 + (relativePosition * 90))
-    speedLabel.Text = labelText .. speed
+    
+    -- Calculate the proper scale position within the track
+    local trackStartScale = 0.15 -- from the track's position
+    local trackWidthScale = 0.7 -- from the track's size
+    local actualScale = trackStartScale + (relativePosition * trackWidthScale)
+    
+    -- Update thumb position (aligned with the track boundaries)
+    flySliderThumb.Position = UDim2.new(actualScale, -7, 0.3, -5)
+    
+    -- Update fly speed based on position (10 to 100)
+    flySpeed = math.floor(10 + (relativePosition * 90))
+    flySpeedLabel.Text = "Fly Speed: " .. flySpeed
+    
+    -- Update velocity immediately if currently flying
+    if flying and bodyVelocity then
+        local camera = workspace.CurrentCamera
+        local direction = Vector3.new(0, 0, 0)
+        
+        -- Get current direction from keys
+        if UserInputService:IsKeyDown(Enum.KeyCode.W) then
+            direction = direction + camera.CFrame.LookVector
+        end
+        if UserInputService:IsKeyDown(Enum.KeyCode.S) then
+            direction = direction - camera.CFrame.LookVector
+        end
+        if UserInputService:IsKeyDown(Enum.KeyCode.A) then
+            direction = direction - camera.CFrame.RightVector
+        end
+        if UserInputService:IsKeyDown(Enum.KeyCode.D) then
+            direction = direction + camera.CFrame.RightVector
+        end
+        if UserInputService:IsKeyDown(Enum.KeyCode.Space) then
+            direction = direction + Vector3.new(0, 1, 0)
+        end
+        if UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) then
+            direction = direction - Vector3.new(0, 1, 0)
+        end
+        
+        -- Normalize and apply new speed
+        if direction.Magnitude > 0 then
+            direction = direction.Unit
+        end
+        bodyVelocity.Velocity = direction * flySpeed
+    end
 end
 
--- Slider Drag Events
-flySliderThumb.MouseButton1Down:Connect(function()
-    UserInputService.InputChanged:Connect(function(input)
+-- Function to update the walk speed slider
+local function updateWalkSlider(input)
+    -- Get slider track dimensions and position
+    local sliderWidth = walkSliderTrack.AbsoluteSize.X
+    local sliderStart = walkSliderTrack.AbsolutePosition.X
+    local sliderEnd = sliderStart + sliderWidth
+    local mouseX = input.Position.X
+    
+    -- Get the thumb half-width for proper edge calculations
+    local thumbHalfWidth = walkSliderThumb.AbsoluteSize.X / 2
+    
+    -- Calculate percentage based on mouse position relative to slider track
+    local thumbPosition = math.clamp(mouseX, sliderStart + thumbHalfWidth, sliderEnd - thumbHalfWidth)
+    local relativePosition = (thumbPosition - sliderStart - thumbHalfWidth) / (sliderWidth - thumbHalfWidth * 2)
+    
+    -- Set position in scale and offset format
+    local scalePosition = relativePosition
+    
+    -- Adjust position to keep thumb within track bounds
+    if scalePosition < 0 then scalePosition = 0 end
+    if scalePosition > 1 then scalePosition = 1 end
+    
+    -- Calculate the proper scale position within the track
+    local trackStartScale = 0.15 -- from the track's position
+    local trackWidthScale = 0.7 -- from the track's size
+    local actualScale = trackStartScale + (scalePosition * trackWidthScale)
+    
+    -- Update thumb position (aligned with the track boundaries)
+    walkSliderThumb.Position = UDim2.new(actualScale, -7, 0.52, -5)
+    
+    -- Update walk speed based on position (16 to 100)
+    customWalkSpeed = math.floor(16 + (scalePosition * 84))
+    walkSpeedLabel.Text = "Walk Speed: " .. customWalkSpeed
+    
+    -- Update character's walk speed if enabled
+    if walkSpeedEnabled and humanoid then
+        humanoid.WalkSpeed = customWalkSpeed
+    end
+end
+
+-- Walk Speed Slider Drag Event
+walkSliderThumb.MouseButton1Down:Connect(function()
+    local connection
+    connection = UserInputService.InputChanged:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseMovement then
-            updateSpeed(flySliderThumb, flySpeedLabel)
+            updateWalkSlider(input)
+        end
+    end)
+
+    -- Stop dragging when mouse button is released
+    local endConn
+    endConn = UserInputService.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            if connection then
+                connection:Disconnect()
+            end
+            endConn:Disconnect()
         end
     end)
 end)
 
-walkSliderThumb.MouseButton1Down:Connect(function()
-    UserInputService.InputChanged:Connect(function(input)
+-- Allow clicking directly on the walk slider track
+walkSliderTrack.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        updateWalkSlider(input)
+    end
+end)
+
+-- Fly Slider Drag Event
+flySliderThumb.MouseButton1Down:Connect(function()
+    local connection
+    connection = UserInputService.InputChanged:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseMovement then
-            updateSpeed(walkSliderThumb, walkSpeedLabel)
+            updateFlySlider(input)
+        end
+    end)
+
+    -- Stop dragging when mouse button is released
+    local endConn
+    endConn = UserInputService.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            if connection then
+                connection:Disconnect()
+            end
+            endConn:Disconnect()
         end
     end)
 end)
+
+-- Allow clicking directly on the fly track to move the thumb
+flySliderTrack.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        updateFlySlider(input)
+    end
+end)
+
+-- Function to enable flying
+local function enableFly()
+    if flying then return end -- Prevent multiple flying states
+    flying = true
+    flyButton.Text = "Fly: ON [F]" -- Updated text with key info
+    humanoid.PlatformStand = true -- Disable gravity for the character
+
+    -- Create a BodyVelocity for movement
+    bodyVelocity = Instance.new("BodyVelocity")
+    bodyVelocity.Velocity = Vector3.new(0, 0, 0)
+    bodyVelocity.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+    bodyVelocity.Parent = rootPart
+
+    -- Create a BodyGyro for stability
+    bodyGyro = Instance.new("BodyGyro")
+    bodyGyro.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
+    bodyGyro.P = 10000
+    bodyGyro.D = 500
+    bodyGyro.CFrame = rootPart.CFrame
+    bodyGyro.Parent = rootPart
+
+    -- Fly loop
+    spawn(function()
+        while flying and bodyVelocity and bodyGyro do
+            local camera = workspace.CurrentCamera
+            local direction = Vector3.new(0, 0, 0)
+
+            -- Movement keys
+            if UserInputService:IsKeyDown(Enum.KeyCode.W) then
+                direction = direction + camera.CFrame.LookVector
+            end
+            if UserInputService:IsKeyDown(Enum.KeyCode.S) then
+                direction = direction - camera.CFrame.LookVector
+            end
+            if UserInputService:IsKeyDown(Enum.KeyCode.A) then
+                direction = direction - camera.CFrame.RightVector
+            end
+            if UserInputService:IsKeyDown(Enum.KeyCode.D) then
+                direction = direction + camera.CFrame.RightVector
+            end
+            if UserInputService:IsKeyDown(Enum.KeyCode.Space) then
+                direction = direction + Vector3.new(0, 1, 0)
+            end
+            if UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) then
+                direction = direction - Vector3.new(0, 1, 0)
+            end
+
+            -- Normalize the direction vector (to keep consistent speed in all directions)
+            if direction.Magnitude > 0 then
+                direction = direction.Unit
+            end
+
+            -- Apply velocity in the direction of movement
+            bodyVelocity.Velocity = direction * flySpeed
+            
+            -- Update BodyGyro to maintain orientation with camera
+            bodyGyro.CFrame = CFrame.new(Vector3.new(0, 0, 0), camera.CFrame.LookVector)
+            
+            wait()
+        end
+    end)
+end
+
+-- Function to disable flying
+local function disableFly()
+    if not flying then return end
+    flying = false
+    flyButton.Text = "Fly: OFF [F]"
+    humanoid.PlatformStand = false
+    
+    -- Remove the flying instances
+    if bodyVelocity then
+        bodyVelocity:Destroy()
+        bodyVelocity = nil
+    end
+    if bodyGyro then
+        bodyGyro:Destroy()
+        bodyGyro = nil
+    end
+end
 
 -- Function to toggle flying
-local function toggleFly()
+function toggleFly()
     if flying then
         disableFly()
     else
         enableFly()
+    end
+end
+ 
+    -- Function to toggle walk speed
+function toggleWalkSpeed()
+    walkSpeedEnabled = not walkSpeedEnabled
+    
+    if walkSpeedEnabled then
+        walkSpeedButton.Text = "Walk Speed: ON [X]"
+        walkSpeedButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0) -- Red when active
+        
+        -- Apply custom walk speed
+        if humanoid then
+            humanoid.WalkSpeed = customWalkSpeed
+        end
+    else
+        walkSpeedButton.Text = "Walk Speed: OFF [X]"
+        walkSpeedButton.BackgroundColor3 = Color3.fromRGB(0, 202, 78) -- Green when inactive
+        
+        -- Reset to default walk speed
+        if humanoid then
+            humanoid.WalkSpeed = defaultWalkSpeed
+        end
+    end
+end
+    
+    -- Disconnect any existing connection first
+    if noclipConnection then
+        noclipConnection:Disconnect()
+        noclipConnection = nil
+    end
+    
+    -- Disconnect any existing connection first
+    if noclipConnection then
+        noclipConnection:Disconnect()
+        noclipConnection = nil
+    end
+    
+-- Function to toggle NoClip
+local function toggleNoClip()
+    noclip = not noclip
+    
+    -- Disconnect any existing connection first
+    if noclipConnection then
+        noclipConnection:Disconnect()
+        noclipConnection = nil
+    end
+    
+    if noclip then
+        noclipButton.Text = "NoClip: ON"
+        
+        -- Connect NoClip function to RunService
+        noclipConnection = game:GetService("RunService").Stepped:Connect(function()
+            if character and character.Parent then
+                for _, part in pairs(character:GetDescendants()) do
+                    if part:IsA("BasePart") and part.CanCollide then
+                        part.CanCollide = false
+                    end
+                end
+            end
+        end)
+    else
+        noclipButton.Text = "NoClip: OFF"
+        
+        -- Reset collision for character parts
+        if character and character.Parent then
+            for _, part in pairs(character:GetDescendants()) do
+                if part:IsA("BasePart") then
+                    if part.Name == "HumanoidRootPart" then
+                        part.CanCollide = false
+                    elseif part.Name == "Head" then
+                        part.CanCollide = false
+                    elseif part.Name:find("Handle") then
+                        part.CanCollide = false
+                    else
+                        part.CanCollide = true
+                    end
+                end
+            end
+        end
     end
 end
 
@@ -201,29 +879,87 @@ walkSpeedButton.MouseButton1Click:Connect(toggleWalkSpeed)
 
 -- Handle character respawning
 player.CharacterAdded:Connect(function(newCharacter)
+    -- Update character references
     character = newCharacter
     humanoid = character:WaitForChild("Humanoid")
     rootPart = character:WaitForChild("HumanoidRootPart")
     
     -- Reset flying state
     if flying then
-        disableFly()
+        -- Update UI state first
+        flyButton.Text = "Fly: OFF [F]"
+        
+        -- Clean up existing instances
+        if bodyVelocity then
+            bodyVelocity:Destroy()
+            bodyVelocity = nil
+        end
+        if bodyGyro then
+            bodyGyro:Destroy()
+            bodyGyro = nil
+        end
+        
+        -- Wait a short time before resetting flying state to allow character to fully load
+        wait(0.1)
+        flying = false
+        humanoid.PlatformStand = false
     end
+    
+    -- Reapply walk speed settings after a short delay
+    spawn(function()
+        wait(0.1)
+        if walkSpeedEnabled then
+            humanoid.WalkSpeed = customWalkSpeed
+        else
+            humanoid.WalkSpeed = defaultWalkSpeed
+        end
+    end)
 end)
+    
 
--- Anti-AFK
-local antiAFK = player.Idled:Connect(function()
-    game:GetService("VirtualUser "):Button2Down(Vector2.new(0, 0), workspace.CurrentCamera.CFrame)
+-- Anti-AFK (prevent Roblox from kicking player for inactivity)
+local antiAFK = game:GetService("Players").LocalPlayer.Idled:Connect(function()
+    game:GetService("VirtualUser"):Button2Down(Vector2.new(0, 0), workspace.CurrentCamera.CFrame)
     wait(1)
-    game:GetService("VirtualUser "):Button2Up(Vector2.new(0, 0), workspace.CurrentCamera.CFrame)
+    game:GetService("VirtualUser"):Button2Up(Vector2.new(0, 0), workspace.CurrentCamera.CFrame)
 end)
 
--- Clean up on script termination
+-- Clean up if the script is terminated
 screenGui.AncestryChanged:Connect(function(_, newParent)
     if not newParent then
+        -- Clean up when the GUI is removed
         if flying then
             disableFly()
         end
-        antiAFK:Disconnect()
+        
+        noclip = false -- Add this line to reset the noclip state
+        
+        if noclipConnection then
+            noclipConnection:Disconnect()
+            noclipConnection = nil
+        end
+        
+        if antiAFK then
+            antiAFK:Disconnect()
+        end
+        
+        -- Reset walk speed
+        if humanoid and walkSpeedEnabled then
+            humanoid.WalkSpeed = defaultWalkSpeed
+        end
+        
+        -- Reset collision for all parts
+        if character and character.Parent then
+            for _, part in pairs(character:GetDescendants()) do
+                if part:IsA("BasePart") then
+                    if part.Name == "HumanoidRootPart" then
+                        part.CanCollide = false
+                    else
+                        part.CanCollide = true
+                    end
+                end
+            end
+        end
     end
 end)
+

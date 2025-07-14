@@ -63,7 +63,7 @@ textLabel:Destroy()
 -- Main Frame
 local frame = Instance.new("Frame")
 frame.Size = UDim2.new(0, 300, 0, 250)
-frame.Position = UDim2.new(0.5, -150, -0.3, 0)
+frame.Position = UDim2.new(0.5, -150, 0, 10)
 frame.BackgroundColor3 = Color3.fromRGB(245, 245, 245)
 frame.BorderSizePixel = 0
 frame.ClipsDescendants = true
@@ -91,34 +91,10 @@ titleLabel.Parent = frame
 local closeButton = Instance.new("TextButton")
 closeButton.Size = UDim2.new(0, 12, 0, 12)
 closeButton.Position = UDim2.new(1, -30, 0, 8)
-closeButton.Text = ""
+closeButton.Text = "X"
 closeButton.BackgroundColor3 = Color3.fromRGB(255, 96, 92)
 closeButton.AutoButtonColor = false
 closeButton.Parent = frame
-
--- Add shadow to close button
-local closeButtonShadow = Instance.new("UIStroke")
-closeButtonShadow.Color = Color3.fromRGB(0, 0, 0)
-closeButtonShadow.Transparency = 0.7
-closeButtonShadow.Thickness = 1
-closeButtonShadow.Parent = closeButton
-
--- Rounded corners for close button
-local closeButtonCorner = Instance.new("UICorner")
-closeButtonCorner.CornerRadius = UDim.new(1, 0)
-closeButtonCorner.Parent = closeButton
-
--- Add hover effect to close button
-closeButton.MouseEnter:Connect(function()
-    closeButton.Text = "X"
-    closeButton.TextColor3 = Color3.fromRGB(225, 223, 225)
-    closeButton.TextSize = 8
-    closeButton.Font = Enum.Font.SourceSansBold
-end)
-
-closeButton.MouseLeave:Connect(function()
-    closeButton.Text = ""
-end)
 
 -- Fly Speed Label
 local flySpeedLabel = Instance.new("TextLabel")
@@ -139,11 +115,6 @@ flySliderTrack.BackgroundColor3 = Color3.fromRGB(225, 223, 225)
 flySliderTrack.BorderSizePixel = 0
 flySliderTrack.Parent = frame
 
--- Rounded corners for fly slider track
-local flySliderCorner = Instance.new("UICorner")
-flySliderCorner.CornerRadius = UDim.new(1, 0)
-flySliderCorner.Parent = flySliderTrack
-
 -- Fly Slider Thumb
 local flySliderThumb = Instance.new("TextButton")
 flySliderThumb.Size = UDim2.new(0, 14, 0, 14)
@@ -152,18 +123,6 @@ flySliderThumb.BackgroundColor3 = Color3.fromRGB(192, 191, 192)
 flySliderThumb.Text = ""
 flySliderThumb.AutoButtonColor = false
 flySliderThumb.Parent = frame
-
--- Add shadow to fly slider thumb
-local flySliderThumbShadow = Instance.new("UIStroke")
-flySliderThumbShadow.Color = Color3.fromRGB(0, 0, 0)
-flySliderThumbShadow.Transparency = 0.7
-flySliderThumbShadow.Thickness = 1
-flySliderThumbShadow.Parent = flySliderThumb
-
--- Rounded corners for fly slider thumb
-local flyThumbCorner = Instance.new("UICorner")
-flyThumbCorner.CornerRadius = UDim.new(1, 0)
-flyThumbCorner.Parent = flySliderThumb
 
 -- Flying Variables
 local flySpeed = 50 -- Default fly speed
@@ -263,10 +222,15 @@ User InputService.InputBegan:Connect(function(input, gameProcessed)
     if gameProcessed then return end -- Ignore if the game already processed the input
 
     if input.KeyCode == Enum.KeyCode.RightAlt then
-        toggleUI()
+        -- Toggle UI visibility (not implemented in this snippet)
     elseif input.KeyCode == Enum.KeyCode.F then
         toggleFly()
     end
+end)
+
+-- Close Button Click
+closeButton.MouseButton1Click:Connect(function()
+    screenGui:Destroy() -- Remove the UI
 end)
 
 -- UI Slide-In Animation
